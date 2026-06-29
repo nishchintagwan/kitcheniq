@@ -3,10 +3,11 @@ import { ArrowLeft } from 'lucide-react'
 import type { ReactNode } from 'react'
 
 interface DarkHeaderProps {
-  title: string
+  title?: string
   subtitle?: string
   showBack?: boolean
   breadcrumb?: string
+  leftElement?: ReactNode
   rightElement?: ReactNode
   children?: ReactNode
 }
@@ -16,6 +17,7 @@ export default function DarkHeader({
   subtitle,
   showBack,
   breadcrumb,
+  leftElement,
   rightElement,
   children,
 }: DarkHeaderProps) {
@@ -143,14 +145,14 @@ export default function DarkHeader({
 
       {/* Content layer — sits above glows */}
       <div style={{ position: 'relative' }}>
-        {/* Top row: back button (left) + rightElement (right) */}
-        {(showBack || rightElement) && (
+        {/* Top row: back/left element + rightElement */}
+        {(showBack || rightElement != null || leftElement != null) && (
           <div
             style={{
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              marginBottom: 6,
+              marginBottom: title ? 6 : 0,
             }}
           >
             {showBack ? (
@@ -173,6 +175,8 @@ export default function DarkHeader({
                   </span>
                 )}
               </button>
+            ) : leftElement != null ? (
+              leftElement
             ) : (
               <div />
             )}
@@ -180,17 +184,19 @@ export default function DarkHeader({
           </div>
         )}
 
-        {/* Title */}
-        <div
-          style={{
-            color: '#FFFFFF',
-            fontSize: 15,
-            fontWeight: 600,
-            letterSpacing: '-0.3px',
-          }}
-        >
-          {title}
-        </div>
+        {/* Title — only rendered when provided */}
+        {title && (
+          <div
+            style={{
+              color: '#FFFFFF',
+              fontSize: 15,
+              fontWeight: 600,
+              letterSpacing: '-0.3px',
+            }}
+          >
+            {title}
+          </div>
+        )}
 
         {/* Subtitle — only rendered when passed, no gap otherwise */}
         {subtitle != null && (
