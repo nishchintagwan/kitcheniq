@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Edit2 } from 'lucide-react'
+import { motion } from 'framer-motion'
 import { supabase } from '../lib/supabase'
 import { useRestaurantStore } from '../stores/restaurantStore'
 import { useRecipeStore } from '../stores/recipeStore'
@@ -11,6 +12,7 @@ import Card from '../components/ui/Card'
 import MarginBar from '../components/ui/MarginBar'
 import StatusBadge from '../components/ui/StatusBadge'
 import AiTipCard from '../components/ui/AiTipCard'
+import Skeleton from '../components/ui/Skeleton'
 import Button from '../components/ui/Button'
 import BottomNav from '../components/ui/BottomNav'
 import type { MarginStatus } from '../types'
@@ -91,6 +93,7 @@ export default function RecipeDetailScreen() {
 
   const [aiTip, setAiTip] = useState<string | null>(null)
   const [aiLoading, setAiLoading] = useState(true)
+  const [dataLoading, setDataLoading] = useState(true)
 
   const recipe = recipes.find((r) => r.id === id)
   const items = id ? (recipeIngredients[id] ?? []) : []
@@ -98,8 +101,16 @@ export default function RecipeDetailScreen() {
   // Fetch ingredients data if navigated to directly (not from dashboard/list)
   useEffect(() => {
     if (!id) return
-    if (!recipeIngredients[id]) fetchRecipeIngredients(id)
-    if (restaurant?.id && ingredients.length === 0) fetchIngredients(restaurant.id)
+    async function load() {
+      const needsIngredients = !recipeIngredients[id!]
+      const needsPrices = restaurant?.id && ingredients.length === 0
+      await Promise.all([
+        needsIngredients ? fetchRecipeIngredients(id!) : Promise.resolve(),
+        needsPrices ? fetchIngredients(restaurant!.id) : Promise.resolve(),
+      ])
+      setDataLoading(false)
+    }
+    load()
   }, [id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Live margin — recomputes if ingredient prices or quantities change
@@ -192,7 +203,9 @@ export default function RecipeDetailScreen() {
         showBack
         breadcrumb="Menu"
         rightElement={
-          <button
+          <motion.button
+            whileTap={{ scale: 0.88, opacity: 0.75 }}
+            transition={{ type: 'spring', stiffness: 500, damping: 30 }}
             onClick={() => navigate(`/recipes/${id}/edit`)}
             aria-label="Edit recipe"
             style={{
@@ -206,11 +219,22 @@ export default function RecipeDetailScreen() {
             }}
           >
             <Edit2 size={16} strokeWidth={1.5} color="rgba(255,255,255,0.7)" />
-          </button>
+          </motion.button>
         }
       />
 
       <div style={{ padding: '16px 16px 96px' }}>
+
+        {dataLoading && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <Skeleton height={180} radius={14} />
+            <Skeleton height={120} radius={14} />
+            <Skeleton height={160} radius={14} />
+          </div>
+        )}
+
+        {!dataLoading && (
+        <>
 
         {/* ── Section 1: Margin hero ── */}
         <Card>
@@ -370,6 +394,9 @@ export default function RecipeDetailScreen() {
             Edit recipe
           </Button>
         </div>
+
+        </>
+        )}
 
       </div>
 

@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Plus, Search, UtensilsCrossed } from 'lucide-react'
+import { motion } from 'framer-motion'
 import { useRestaurantStore } from '../stores/restaurantStore'
 import { useRecipeStore } from '../stores/recipeStore'
 import { useIngredientStore } from '../stores/ingredientStore'
@@ -51,20 +52,29 @@ export default function RecipeListScreen() {
   const { ingredients, fetchIngredients } = useIngredientStore()
 
   const [isLoading, setIsLoading] = useState(true)
+  const [hasError, setHasError] = useState(false)
   const [search, setSearch] = useState('')
   const [activeFilter, setActiveFilter] = useState<string>(
     () => searchParams.get('status') ?? 'all'
   )
 
-  useEffect(() => {
-    const restaurantId = restaurant?.id
-    if (!restaurantId) return
+  async function loadData(restaurantId: string) {
     setIsLoading(true)
-    Promise.all([fetchRecipes(restaurantId), fetchIngredients(restaurantId)]).then(async () => {
+    setHasError(false)
+    try {
+      await Promise.all([fetchRecipes(restaurantId), fetchIngredients(restaurantId)])
       const { recipes: latest } = useRecipeStore.getState()
       await Promise.all(latest.map((r) => fetchRecipeIngredients(r.id)))
+    } catch {
+      setHasError(true)
+    } finally {
       setIsLoading(false)
-    })
+    }
+  }
+
+  useEffect(() => {
+    if (!restaurant?.id) return
+    loadData(restaurant.id)
   }, [restaurant?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const dishesWithMargins = useMemo<DishWithMargin[]>(() => {
@@ -107,7 +117,9 @@ export default function RecipeListScreen() {
           isLoading ? undefined : `${recipes.length} dish${recipes.length !== 1 ? 'es' : ''}`
         }
         rightElement={
-          <button
+          <motion.button
+            whileTap={{ scale: 0.88, opacity: 0.75 }}
+            transition={{ type: 'spring', stiffness: 500, damping: 30 }}
             onClick={() => navigate('/recipes/new')}
             aria-label="Add dish"
             style={{
@@ -121,7 +133,7 @@ export default function RecipeListScreen() {
             }}
           >
             <Plus size={18} strokeWidth={1.5} color="#FFFFFF" />
-          </button>
+          </motion.button>
         }
       />
 
@@ -139,8 +151,10 @@ export default function RecipeListScreen() {
           {chips.map((chip) => {
             const isActive = chip.id === activeFilter
             return (
-              <button
+              <motion.button
                 key={chip.id}
+                whileTap={{ scale: 0.94, opacity: 0.85 }}
+                transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                 onClick={() => setActiveFilter(chip.id)}
                 style={{
                   flexShrink: 0,
@@ -157,7 +171,7 @@ export default function RecipeListScreen() {
                 }}
               >
                 {chip.label}
-              </button>
+              </motion.button>
             )
           })}
         </div>
@@ -197,7 +211,13 @@ export default function RecipeListScreen() {
         </div>
 
         <div style={{ padding: '12px 16px 0' }}>
-          {isLoading ? (
+          {hasError ? (
+            <Card onClick={() => restaurant?.id && loadData(restaurant.id)}>
+              <p style={{ fontSize: 13, color: '#888888', textAlign: 'center', margin: 0 }}>
+                Something went wrong — tap to retry
+              </p>
+            </Card>
+          ) : isLoading ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {[1, 2, 3, 4].map((i) => (
                 <Skeleton key={i} height={112} radius={14} />

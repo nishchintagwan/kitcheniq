@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Plus, Search, AlertTriangle, X } from 'lucide-react'
+import { motion } from 'framer-motion'
 import { supabase } from '../lib/supabase'
 import { useRestaurantStore } from '../stores/restaurantStore'
 import { useIngredientStore } from '../stores/ingredientStore'
@@ -35,6 +36,7 @@ export default function IngredientManagerScreen() {
   const { ingredients, fetchIngredients } = useIngredientStore()
 
   const [isLoading, setIsLoading] = useState(true)
+  const [hasError, setHasError] = useState(false)
   const [search, setSearch] = useState('')
   const [alertDismissed, setAlertDismissed] = useState(false)
   const [showNewForm, setShowNewForm] = useState(false)
@@ -44,10 +46,21 @@ export default function IngredientManagerScreen() {
   const [isSavingNew, setIsSavingNew] = useState(false)
   const [newFocused, setNewFocused] = useState<string | null>(null)
 
+  async function loadData(restaurantId: string) {
+    setIsLoading(true)
+    setHasError(false)
+    try {
+      await fetchIngredients(restaurantId)
+    } catch {
+      setHasError(true)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   useEffect(() => {
-    const restaurantId = restaurant?.id
-    if (!restaurantId) return
-    fetchIngredients(restaurantId).then(() => setIsLoading(false))
+    if (!restaurant?.id) return
+    loadData(restaurant.id)
   }, [restaurant?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Sort stalest first (oldest last_updated first)
@@ -118,7 +131,9 @@ export default function IngredientManagerScreen() {
         title="Ingredients"
         subtitle={headerSubtitle}
         rightElement={
-          <button
+          <motion.button
+            whileTap={{ scale: 0.88, opacity: 0.75 }}
+            transition={{ type: 'spring', stiffness: 500, damping: 30 }}
             onClick={() => setShowNewForm((v) => !v)}
             aria-label="Add ingredient"
             style={{
@@ -132,7 +147,7 @@ export default function IngredientManagerScreen() {
             }}
           >
             <Plus size={18} strokeWidth={1.5} color="#FFFFFF" />
-          </button>
+          </motion.button>
         }
       />
 
@@ -202,9 +217,11 @@ export default function IngredientManagerScreen() {
 
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                 {UNITS.map((u) => (
-                  <button
+                  <motion.button
                     key={u}
                     type="button"
+                    whileTap={{ scale: 0.94, opacity: 0.85 }}
+                    transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                     onClick={() => setNewUnit(u)}
                     style={{
                       backgroundColor: newUnit === u ? '#7C3AED' : '#F5F0FA',
@@ -219,13 +236,15 @@ export default function IngredientManagerScreen() {
                     }}
                   >
                     {u}
-                  </button>
+                  </motion.button>
                 ))}
               </div>
 
               <div style={{ display: 'flex', gap: 10 }}>
-                <button
+                <motion.button
                   type="button"
+                  whileTap={{ scale: 0.96, opacity: 0.85 }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                   onClick={() => setShowNewForm(false)}
                   style={{
                     flex: 1,
@@ -240,9 +259,11 @@ export default function IngredientManagerScreen() {
                   }}
                 >
                   Cancel
-                </button>
-                <button
+                </motion.button>
+                <motion.button
                   type="button"
+                  whileTap={{ scale: 0.96, opacity: 0.85 }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                   onClick={handleAddNew}
                   disabled={isSavingNew || !newName.trim() || !newPrice}
                   style={{
@@ -261,7 +282,7 @@ export default function IngredientManagerScreen() {
                   }}
                 >
                   {isSavingNew ? 'Adding...' : 'Add ingredient'}
-                </button>
+                </motion.button>
               </div>
             </div>
           </div>
@@ -285,13 +306,15 @@ export default function IngredientManagerScreen() {
             <span style={{ flex: 1, fontSize: 12, color: '#1A1A1A', lineHeight: 1.4 }}>
               Some prices haven't been updated in 7+ days
             </span>
-            <button
+            <motion.button
+              whileTap={{ scale: 0.88, opacity: 0.75 }}
+              transition={{ type: 'spring', stiffness: 500, damping: 30 }}
               onClick={() => setAlertDismissed(true)}
               aria-label="Dismiss alert"
               style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, lineHeight: 1 }}
             >
               <X size={14} strokeWidth={1.5} color="#888888" />
-            </button>
+            </motion.button>
           </div>
         )}
 
@@ -330,7 +353,13 @@ export default function IngredientManagerScreen() {
         </div>
 
         {/* ── Ingredient list ── */}
-        {isLoading ? (
+        {hasError ? (
+          <Card onClick={() => restaurant?.id && loadData(restaurant.id)}>
+            <p style={{ fontSize: 13, color: '#888888', textAlign: 'center', margin: 0 }}>
+              Something went wrong — tap to retry
+            </p>
+          </Card>
+        ) : isLoading ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {[1, 2, 3, 4, 5, 6].map((i) => (
               <Skeleton key={i} height={72} radius={14} />

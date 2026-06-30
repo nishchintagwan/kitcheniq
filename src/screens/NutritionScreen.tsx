@@ -268,19 +268,7 @@ export default function NutritionScreen() {
               }}
             >
               {calculating ? (
-                <>
-                  <div
-                    style={{
-                      width: 14,
-                      height: 14,
-                      borderRadius: '50%',
-                      border: '2px solid rgba(255,255,255,0.3)',
-                      borderTopColor: '#FFFFFF',
-                      animation: 'spin 0.8s linear infinite',
-                    }}
-                  />
-                  Calculating…
-                </>
+                <>Calculating…</>
               ) : (
                 <>
                   <Sparkles size={14} strokeWidth={1.5} />
