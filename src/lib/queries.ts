@@ -5,6 +5,7 @@ import type {
   Ingredient,
   RecipeIngredient,
   IngredientPriceHistory,
+  AiInsight,
 } from '../types'
 
 export async function getRestaurant(ownerId: string): Promise<Restaurant | null> {
@@ -82,6 +83,39 @@ export async function getPriceHistory(
   } catch (error) {
     console.error('[getPriceHistory]', error)
     return []
+  }
+}
+
+export async function getSpikeInsights(ingredientId: string): Promise<AiInsight[]> {
+  try {
+    const { data, error } = await supabase
+      .from('ai_insights')
+      .select('*')
+      .eq('insight_type', 'spike_alert')
+      .is('dismissed_at', null)
+      .filter('data->>ingredientId', 'eq', ingredientId)
+      .order('created_at', { ascending: false })
+    if (error) throw error
+    return (data ?? []) as AiInsight[]
+  } catch (error) {
+    console.error('[getSpikeInsights]', error)
+    return []
+  }
+}
+
+export async function dismissSpikeInsights(ingredientId: string): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from('ai_insights')
+      .update({ dismissed_at: new Date().toISOString() })
+      .eq('insight_type', 'spike_alert')
+      .is('dismissed_at', null)
+      .filter('data->>ingredientId', 'eq', ingredientId)
+    if (error) throw error
+    return true
+  } catch (error) {
+    console.error('[dismissSpikeInsights]', error)
+    return false
   }
 }
 

@@ -337,7 +337,7 @@ export default function DashboardScreen() {
               marginBottom: 12,
               cursor: 'pointer',
             }}
-            onClick={() => navigate(`/ingredients/${activeSpikes[0].ingredient.id}`)}
+            onClick={() => navigate(`/alerts/${activeSpikes[0].ingredient.id}`)}
           >
             <AlertTriangle size={14} strokeWidth={1.5} color="#FBB924" />
             <span style={{ flex: 1, fontSize: 12, color: '#1A1A1A', lineHeight: 1.4 }}>
