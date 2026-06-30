@@ -13,6 +13,7 @@ interface RecipeStore {
   fetchRecipes: (restaurantId: string) => Promise<void>
   fetchRecipeIngredients: (recipeId: string) => Promise<void>
   getMarginForRecipe: (recipeId: string) => MarginResult | null
+  updateRecipePrice: (recipeId: string, newPrice: number) => void
 }
 
 export const useRecipeStore = create<RecipeStore>()(
@@ -36,6 +37,13 @@ export const useRecipeStore = create<RecipeStore>()(
           recipeIngredients: { ...state.recipeIngredients, [recipeId]: items },
         }))
       },
+
+      updateRecipePrice: (recipeId, newPrice) =>
+        set((state) => ({
+          recipes: state.recipes.map((r) =>
+            r.id === recipeId ? { ...r, selling_price: newPrice } : r
+          ),
+        })),
 
       // Single source of truth for all margin calculations in the app.
       // Reads current ingredient prices live from ingredientStore so that

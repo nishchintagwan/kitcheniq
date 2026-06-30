@@ -86,6 +86,51 @@ export async function getPriceHistory(
   }
 }
 
+export async function getMenuInsights(restaurantId: string): Promise<AiInsight[]> {
+  try {
+    const { data, error } = await supabase
+      .from('ai_insights')
+      .select('*')
+      .eq('restaurant_id', restaurantId)
+      .in('insight_type', ['reprice', 'promote', 'remove'])
+      .is('dismissed_at', null)
+      .order('created_at', { ascending: false })
+    if (error) throw error
+    return (data ?? []) as AiInsight[]
+  } catch (error) {
+    console.error('[getMenuInsights]', error)
+    return []
+  }
+}
+
+export async function dismissInsight(insightId: string): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from('ai_insights')
+      .update({ dismissed_at: new Date().toISOString() })
+      .eq('id', insightId)
+    if (error) throw error
+    return true
+  } catch (error) {
+    console.error('[dismissInsight]', error)
+    return false
+  }
+}
+
+export async function applyReprice(recipeId: string, suggestedPrice: number): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from('recipes')
+      .update({ selling_price: suggestedPrice, updated_at: new Date().toISOString() })
+      .eq('id', recipeId)
+    if (error) throw error
+    return true
+  } catch (error) {
+    console.error('[applyReprice]', error)
+    return false
+  }
+}
+
 export async function getSpikeInsights(ingredientId: string): Promise<AiInsight[]> {
   try {
     const { data, error } = await supabase
