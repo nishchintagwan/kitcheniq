@@ -79,12 +79,11 @@ export default function DashboardScreen() {
     fetchRecipes,
     fetchRecipeIngredients,
   } = useRecipeStore()
-  const { ingredients, fetchIngredients, spikes } = useIngredientStore()
+  const { ingredients, fetchIngredients, spikes, dismissedSpikeIds, dismissSpike } = useIngredientStore()
 
   const [isLoading, setIsLoading] = useState(true)
   const [aiSummary, setAiSummary] = useState<string | null>(null)
   const [aiLoading, setAiLoading] = useState(true)
-  const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set())
 
   // Pull-to-refresh
   const rootRef = useRef<HTMLDivElement>(null)
@@ -182,7 +181,7 @@ export default function DashboardScreen() {
     critical: criticalCount,
   }
 
-  const activeSpikes = spikes.filter((s) => !dismissedIds.has(s.ingredient.id))
+  const activeSpikes = spikes.filter((s) => !dismissedSpikeIds.includes(s.ingredient.id))
 
   function handleRefresh() {
     const restaurantId = restaurant?.id
@@ -321,14 +320,15 @@ export default function DashboardScreen() {
           ))}
         </div>
 
-        {/* ── Section 3: Alert strips ── */}
-        {activeSpikes.map((spike) => (
+        {/* ── Section 3: Alert strip (single combined when multiple spikes) ── */}
+        {activeSpikes.length === 1 && (
           <motion.div
-            key={spike.ingredient.id}
+            key={activeSpikes[0].ingredient.id}
             whileTap={{ scale: 0.98 }}
             transition={{ type: 'spring', stiffness: 500, damping: 30 }}
             style={{
               backgroundColor: '#FFF8EC',
+              border: '0.5px solid rgba(251,185,36,0.3)',
               borderRadius: 10,
               padding: '10px 12px',
               display: 'flex',
@@ -337,34 +337,64 @@ export default function DashboardScreen() {
               marginBottom: 12,
               cursor: 'pointer',
             }}
-            onClick={() => navigate(`/alerts/${spike.ingredient.id}`)}
+            onClick={() => navigate(`/ingredients/${activeSpikes[0].ingredient.id}`)}
           >
-            <AlertTriangle size={14} strokeWidth={1.5} color="#F59E0B" />
+            <AlertTriangle size={14} strokeWidth={1.5} color="#FBB924" />
             <span style={{ flex: 1, fontSize: 12, color: '#1A1A1A', lineHeight: 1.4 }}>
-              {spike.ingredient.name} price changed{' '}
-              {spike.changePercent > 0 ? '+' : ''}
-              {Math.round(spike.changePercent)}% — tap to review affected dishes
+              <span style={{ fontWeight: 600 }}>{activeSpikes[0].ingredient.name}</span>
+              {' '}price changed{' '}
+              <span style={{ fontWeight: 600, color: activeSpikes[0].changePercent > 0 ? '#FF505F' : '#00DC82' }}>
+                {activeSpikes[0].changePercent > 0 ? '+' : ''}
+                {Math.round(activeSpikes[0].changePercent)}%
+              </span>
+              {' '}— tap to review
             </span>
             <button
               onClick={(e) => {
                 e.stopPropagation()
-                setDismissedIds((prev) => new Set([...prev, spike.ingredient.id]))
+                dismissSpike(activeSpikes[0].ingredient.id)
               }}
               aria-label="Dismiss alert"
-              style={{
-                background: 'none',
-                border: 'none',
-                padding: 2,
-                cursor: 'pointer',
-                color: '#888888',
-                lineHeight: 1,
-                flexShrink: 0,
-              }}
+              style={{ background: 'none', border: 'none', padding: 2, cursor: 'pointer', lineHeight: 1, flexShrink: 0 }}
             >
-              <X size={14} strokeWidth={1.5} />
+              <X size={14} strokeWidth={1.5} color="#888888" />
             </button>
           </motion.div>
-        ))}
+        )}
+        {activeSpikes.length > 1 && (
+          <motion.div
+            whileTap={{ scale: 0.98 }}
+            transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+            style={{
+              backgroundColor: '#FFF8EC',
+              border: '0.5px solid rgba(251,185,36,0.3)',
+              borderRadius: 10,
+              padding: '10px 12px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              marginBottom: 12,
+              cursor: 'pointer',
+            }}
+            onClick={() => navigate('/ingredients')}
+          >
+            <AlertTriangle size={14} strokeWidth={1.5} color="#FBB924" />
+            <span style={{ flex: 1, fontSize: 12, color: '#1A1A1A', lineHeight: 1.4 }}>
+              <span style={{ fontWeight: 600 }}>{activeSpikes.length} price spikes</span>
+              {' '}detected — tap to review affected dishes
+            </span>
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                activeSpikes.forEach((s) => dismissSpike(s.ingredient.id))
+              }}
+              aria-label="Dismiss all alerts"
+              style={{ background: 'none', border: 'none', padding: 2, cursor: 'pointer', lineHeight: 1, flexShrink: 0 }}
+            >
+              <X size={14} strokeWidth={1.5} color="#888888" />
+            </button>
+          </motion.div>
+        )}
 
         {/* ── Section 4: Dish list header ── */}
         <div

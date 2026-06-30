@@ -80,8 +80,8 @@ export interface AiTip {
 export interface AiInsight {
   id: string
   restaurant_id: string
-  insight_type: 'reprice' | 'promote' | 'remove'
-  recipe_id: string
+  insight_type: 'reprice' | 'promote' | 'remove' | 'spike_alert'
+  recipe_id?: string | null
   message: string
   data: Record<string, unknown>
   created_at: string
