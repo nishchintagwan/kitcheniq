@@ -6,6 +6,7 @@ import type {
   RecipeIngredient,
   IngredientPriceHistory,
   AiInsight,
+  NutritionData,
 } from '../types'
 
 export async function getRestaurant(ownerId: string): Promise<Restaurant | null> {
@@ -202,5 +203,20 @@ export async function upsertIngredientPrice(
   } catch (error) {
     console.error('[upsertIngredientPrice]', error)
     return false
+  }
+}
+
+export async function getNutritionData(recipeId: string): Promise<NutritionData | null> {
+  try {
+    const { data, error } = await supabase
+      .from('nutrition_data')
+      .select('*')
+      .eq('recipe_id', recipeId)
+      .maybeSingle()
+    if (error) throw error
+    return data as NutritionData | null
+  } catch (error) {
+    console.error('[getNutritionData]', error)
+    return null
   }
 }
