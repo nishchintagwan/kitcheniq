@@ -62,10 +62,10 @@ function AnimatedRoutes() {
         exit="exit"
         transition={springTransition}
         style={{
-          position: 'fixed',
-          inset: 0,
+          minHeight: '100vh',
           overflow: 'auto',
           backgroundColor: '#FFFAF5',
+          position: 'relative',
         }}
       >
         <Routes location={location}>
