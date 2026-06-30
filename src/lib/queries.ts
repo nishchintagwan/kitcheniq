@@ -9,6 +9,23 @@ import type {
   NutritionData,
 } from '../types'
 
+export async function saveRestaurant(
+  restaurantId: string,
+  updates: Partial<Pick<Restaurant, 'name' | 'city' | 'cuisine_type' | 'fssai_number'>>
+): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from('restaurants')
+      .update({ ...updates, updated_at: new Date().toISOString() })
+      .eq('id', restaurantId)
+    if (error) throw error
+    return true
+  } catch (error) {
+    console.error('[saveRestaurant]', error)
+    return false
+  }
+}
+
 export async function getRestaurant(ownerId: string): Promise<Restaurant | null> {
   try {
     const { data, error } = await supabase

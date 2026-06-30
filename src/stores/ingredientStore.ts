@@ -15,6 +15,7 @@ interface IngredientStore {
   fetchIngredients: (restaurantId: string) => Promise<void>
   updateIngredientPrice: (id: string, newPrice: number) => Promise<void>
   dismissSpike: (ingredientId: string) => void
+  clearIngredients: () => void
 }
 
 interface RecipeRow {
@@ -41,6 +42,9 @@ export const useIngredientStore = create<IngredientStore>()(
       dismissedSpikeIds: [],
 
       setIngredients: (ingredients) => set({ ingredients }),
+
+      clearIngredients: () =>
+        set({ ingredients: [], isLoading: false, lastUpdated: null, spikes: [], dismissedSpikeIds: [] }),
 
       dismissSpike: (ingredientId) =>
         set((state) => ({
