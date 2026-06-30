@@ -184,6 +184,7 @@ export const useIngredientStore = create<IngredientStore>()(
           supabase.functions
             .invoke('ai-spike-recommendations', {
               body: {
+                restaurantId: existing.restaurant_id,
                 ingredientId: id,
                 ingredientName: existing.name,
                 previousPrice,
