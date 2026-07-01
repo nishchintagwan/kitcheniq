@@ -1,7 +1,8 @@
 import { motion } from 'framer-motion'
-import type { HTMLAttributes, ReactNode } from 'react'
+import type { HTMLMotionProps } from 'framer-motion'
+import type { ReactNode } from 'react'
 
-interface CardProps extends HTMLAttributes<HTMLDivElement> {
+interface CardProps extends Omit<HTMLMotionProps<'div'>, 'ref'> {
   onClick?: () => void
   className?: string
   children?: ReactNode

@@ -181,8 +181,7 @@ export const useIngredientStore = create<IngredientStore>()(
                 affectedRecipeIds: recipeIds,
               },
             })
-            .then(() => {})
-            .catch(() => {})
+            .then(() => {}, () => {})
 
           // Step 4: trigger AI spike recommendations Edge Function (fire-and-forget)
           supabase.functions

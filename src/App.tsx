@@ -23,17 +23,20 @@ import IngredientDetailScreen from './screens/IngredientDetailScreen'
 import InsightsScreen from './screens/InsightsScreen'
 import AlertDetailScreen from './screens/AlertDetailScreen'
 import SettingsScreen from './screens/SettingsScreen'
+import AlertsListScreen from './screens/AlertsListScreen'
+import AutopilotScreen from './screens/AutopilotScreen'
+import IntelligenceHubScreen from './screens/IntelligenceHubScreen'
+import MoreScreen from './screens/MoreScreen'
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutes
+      staleTime: 5 * 60 * 1000,
       retry: 1,
     },
   },
 })
 
-// Spring spec — used for all page transitions
 const springTransition = {
   type: 'spring' as const,
   stiffness: 380,
@@ -51,8 +54,6 @@ function AnimatedRoutes() {
   const location = useLocation()
 
   return (
-    // mode="popLayout" positions the exiting page absolutely so the entering
-    // page can slide in alongside it without layout shift (prevents double-render flash)
     <AnimatePresence mode="popLayout">
       <motion.div
         key={location.key}
@@ -64,7 +65,7 @@ function AnimatedRoutes() {
         style={{
           minHeight: '100vh',
           overflow: 'auto',
-          backgroundColor: '#FFFAF5',
+          backgroundColor: '#0C111B',
           position: 'relative',
         }}
       >
@@ -74,14 +75,14 @@ function AnimatedRoutes() {
             <ProtectedRoute><LoadingScreen /></ProtectedRoute>
           } />
 
-          {/* Public — redirect to /dashboard if already authed */}
+          {/* Public */}
           <Route path="/login" element={
             <PublicRoute><SplashScreen /></PublicRoute>
           } />
           <Route path="/otp"   element={<OtpScreen />} />
           <Route path="/setup" element={<RestaurantSetupScreen />} />
 
-          {/* Onboarding (public — user may not have a restaurant yet) */}
+          {/* Onboarding */}
           <Route path="/onboarding/import"      element={<MenuImportScreen />} />
           <Route path="/onboarding/parse"       element={<AiParserScreen />} />
           <Route path="/onboarding/ingredients" element={<IngredientPickerScreen />} />
@@ -117,8 +118,20 @@ function AnimatedRoutes() {
           <Route path="/alerts/:id" element={
             <ProtectedRoute><AlertDetailScreen /></ProtectedRoute>
           } />
+          <Route path="/alerts" element={
+            <ProtectedRoute><AlertsListScreen /></ProtectedRoute>
+          } />
           <Route path="/settings" element={
             <ProtectedRoute><SettingsScreen /></ProtectedRoute>
+          } />
+          <Route path="/autopilot" element={
+            <ProtectedRoute><AutopilotScreen /></ProtectedRoute>
+          } />
+          <Route path="/intelligence" element={
+            <ProtectedRoute><IntelligenceHubScreen /></ProtectedRoute>
+          } />
+          <Route path="/more" element={
+            <ProtectedRoute><MoreScreen /></ProtectedRoute>
           } />
         </Routes>
       </motion.div>

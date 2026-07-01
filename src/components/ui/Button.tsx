@@ -1,7 +1,8 @@
 import { motion } from 'framer-motion'
-import type { ButtonHTMLAttributes, ReactNode } from 'react'
+import type { HTMLMotionProps } from 'framer-motion'
+import type { ReactNode } from 'react'
 
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+interface ButtonProps extends Omit<HTMLMotionProps<'button'>, 'ref'> {
   variant?: 'primary' | 'ghost'
   fullWidth?: boolean
   children?: ReactNode

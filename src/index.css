@@ -2,6 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Kept for DarkHeader — removed in R2 */
 @keyframes breathe {
   0%, 100% { opacity: 0.85; }
   50% { opacity: 1; }
@@ -18,24 +19,35 @@
   0%, 100% { transform: translate(0, 0); }
   50% { transform: translate(7px, 4px); }
 }
+
 @keyframes shimmer {
-  0% { background-position: -200% 0; }
+  0%   { background-position: -200% 0; }
   100% { background-position: 200% 0; }
 }
+
+@keyframes shimmer-dark {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
 @keyframes countUp {
   from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: translateY(0); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 * { -webkit-tap-highlight-color: transparent; }
 
 html {
-  background-color: #0D0A14;
+  background: radial-gradient(circle at top, #102033 0%, #080b12 44%, #05070b 100%);
+  background-attachment: fixed;
+  background-color: #0C111B;
 }
 
 body {
-  background-color: #FFFAF5;
+  background: transparent;
+  color: #F4F6FA;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  -webkit-font-smoothing: antialiased;
   max-width: 430px;
   margin: 0 auto;
   min-height: 100vh;

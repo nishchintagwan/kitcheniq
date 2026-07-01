@@ -24,18 +24,18 @@ const schema = z.object({
   name: z.string().min(1, 'Enter a dish name'),
   category: z.string().min(1, 'Select a category'),
   selling_price: z
-    .number({ invalid_type_error: 'Enter a selling price' })
+    .number({ message: 'Enter a selling price' })
     .min(0, 'Must be 0 or more'),
   serves: z
-    .number({ invalid_type_error: 'Enter serves count' })
+    .number({ message: 'Enter serves count' })
     .int('Must be a whole number')
     .min(1, 'Must be at least 1'),
   wastage_percent: z
-    .number({ invalid_type_error: 'Enter wastage %' })
+    .number({ message: 'Enter wastage %' })
     .min(0, 'Min 0%')
     .max(50, 'Max 50%'),
   overhead_percent: z
-    .number({ invalid_type_error: 'Enter overhead %' })
+    .number({ message: 'Enter overhead %' })
     .min(0, 'Min 0%')
     .max(100, 'Max 100%'),
 })

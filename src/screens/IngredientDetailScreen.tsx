@@ -80,7 +80,7 @@ export default function IngredientDetailScreen() {
       await Promise.all(fetchList)
 
       // Price history
-      const hist = await getPriceHistory(id, 10)
+      const hist = await getPriceHistory(id as string, 10)
       setHistory(hist)
 
       // Find recipes that use this ingredient
@@ -108,7 +108,7 @@ export default function IngredientDetailScreen() {
     setIsSaving(true)
     try {
       await updateIngredientPrice(id, newPrice)
-      const hist = await getPriceHistory(id, 10)
+      const hist = await getPriceHistory(id as string, 10)
       setHistory(hist)
       setIsEditing(false)
       setShowConfirm(true)
@@ -324,8 +324,10 @@ export default function IngredientDetailScreen() {
                     fontSize: 11,
                     color: '#1A1A1A',
                   }}
-                  formatter={(val: number) => [`₹${val}/${ingredient ? displayUnit(ingredient.unit) : 'kg'}`, 'Price']}
-                  labelFormatter={(label: string) => shortRelativeTime(label)}
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  formatter={(val: any) => [`₹${val}/${ingredient ? displayUnit(ingredient.unit) : 'kg'}`, 'Price'] as any}
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  labelFormatter={(label: any) => shortRelativeTime(String(label))}
                 />
                 <Line
                   type="monotone"
