@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Kept for DarkHeader — removed in R2 */
+/* Legacy header animations (removed in R2 — kept for reference) */
 @keyframes breathe {
   0%, 100% { opacity: 0.85; }
   50% { opacity: 1; }

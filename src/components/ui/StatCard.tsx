@@ -6,9 +6,9 @@ interface StatCardProps {
 }
 
 const config: Record<MarginStatus, { bg: string; numberColor: string; border: string; label: string }> = {
-  healthy:  { bg: '#003D20', numberColor: '#00DC82', border: 'rgba(0,220,130,0.4)',   label: 'Healthy'  },
-  watch:    { bg: '#3D2000', numberColor: '#FBB924', border: 'rgba(251,185,36,0.4)',  label: 'Watch'    },
-  critical: { bg: '#3D0008', numberColor: '#FF505F', border: 'rgba(255,80,95,0.4)',   label: 'Critical' },
+  healthy:  { bg: 'rgba(54,211,153,0.14)',  numberColor: '#36D399', border: 'rgba(54,211,153,0.3)',   label: 'Healthy'  },
+  watch:    { bg: 'rgba(240,169,63,0.14)',  numberColor: '#F0A93F', border: 'rgba(240,169,63,0.3)',  label: 'Watch'    },
+  critical: { bg: 'rgba(240,89,107,0.14)', numberColor: '#F0596B', border: 'rgba(240,89,107,0.3)', label: 'Critical' },
 }
 
 export default function StatCard({ status, value }: StatCardProps) {
@@ -18,9 +18,9 @@ export default function StatCard({ status, value }: StatCardProps) {
     <div
       style={{
         backgroundColor: bg,
-        borderRadius: 8,
-        border: `0.5px solid ${border}`,
-        padding: '7px 6px',
+        borderRadius: 12,
+        border: `1px solid ${border}`,
+        padding: '10px 8px',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -30,8 +30,8 @@ export default function StatCard({ status, value }: StatCardProps) {
       <div
         style={{
           color: numberColor,
-          fontSize: 20,
-          fontWeight: 700,
+          fontSize: 22,
+          fontWeight: 800,
           letterSpacing: '-0.5px',
           lineHeight: 1.1,
         }}
@@ -40,12 +40,12 @@ export default function StatCard({ status, value }: StatCardProps) {
       </div>
       <div
         style={{
-          color: numberColor,
-          fontSize: 6,
+          color: '#9AA4B8',
+          fontSize: 7,
           textTransform: 'uppercase',
-          letterSpacing: '0.05em',
-          opacity: 0.55,
-          marginTop: 2,
+          letterSpacing: '0.06em',
+          fontWeight: 800,
+          marginTop: 3,
         }}
       >
         {label}

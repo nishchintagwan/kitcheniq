@@ -9,7 +9,7 @@ import { useRestaurantStore } from '../stores/restaurantStore'
 import { useRecipeStore } from '../stores/recipeStore'
 import { useIngredientStore } from '../stores/ingredientStore'
 import { calculateMargin, ingredientCost, formatCurrency, formatMargin } from '../lib/costCalculator'
-import DarkHeader from '../components/ui/DarkHeader'
+import GlacierHeader from '../components/ui/GlacierHeader'
 import Button from '../components/ui/Button'
 import MarginBar from '../components/ui/MarginBar'
 import Skeleton from '../components/ui/Skeleton'
@@ -319,7 +319,7 @@ export default function EditRecipeScreen() {
   if (!recipe && !isLoading) {
     return (
       <div style={{ backgroundColor: '#FFFAF5', minHeight: '100vh' }}>
-        <DarkHeader title="Edit dish" showBack breadcrumb="Menu" />
+        <GlacierHeader title="Edit dish" showBack breadcrumb="Menu" />
         <p style={{ textAlign: 'center', color: '#888888', fontSize: 13, padding: 32 }}>
           Recipe not found
         </p>
@@ -330,7 +330,7 @@ export default function EditRecipeScreen() {
 
   return (
     <div style={{ backgroundColor: '#FFFAF5', minHeight: '100vh' }}>
-      <DarkHeader title="Edit dish" showBack breadcrumb={recipe?.name ?? 'Dish'} />
+      <GlacierHeader title="Edit dish" showBack breadcrumb={recipe?.name ?? 'Dish'} />
 
       {isLoading ? (
         <div style={{ padding: '16px 16px 96px', display: 'flex', flexDirection: 'column', gap: 16 }}>

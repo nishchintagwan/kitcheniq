@@ -8,7 +8,7 @@ import { supabase } from '../lib/supabase'
 import { useRestaurantStore } from '../stores/restaurantStore'
 import { useRecipeStore } from '../stores/recipeStore'
 import { calculateMargin, ingredientCost, formatCurrency, formatMargin } from '../lib/costCalculator'
-import DarkHeader from '../components/ui/DarkHeader'
+import GlacierHeader from '../components/ui/GlacierHeader'
 import Button from '../components/ui/Button'
 import MarginBar from '../components/ui/MarginBar'
 import BottomNav from '../components/ui/BottomNav'
@@ -203,7 +203,7 @@ export default function AddRecipeScreen() {
 
   return (
     <div style={{ backgroundColor: '#FFFAF5', minHeight: '100vh' }}>
-      <DarkHeader title="Add a dish" showBack breadcrumb="Menu" />
+      <GlacierHeader title="Add a dish" showBack breadcrumb="Menu" />
 
       <form onSubmit={handleSubmit(onSubmit)} noValidate>
         <div style={{ padding: '16px 16px 112px', display: 'flex', flexDirection: 'column', gap: 20 }}>

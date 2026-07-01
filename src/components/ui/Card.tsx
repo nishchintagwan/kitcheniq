@@ -4,11 +4,12 @@ import type { ReactNode } from 'react'
 
 interface CardProps extends Omit<HTMLMotionProps<'div'>, 'ref'> {
   onClick?: () => void
+  elevated?: boolean
   className?: string
   children?: ReactNode
 }
 
-export default function Card({ onClick, className, children, style: styleProp, ...rest }: CardProps) {
+export default function Card({ onClick, elevated = false, className, children, style: styleProp, ...rest }: CardProps) {
   return (
     <motion.div
       onClick={onClick}
@@ -16,10 +17,10 @@ export default function Card({ onClick, className, children, style: styleProp, .
       transition={{ type: 'spring', stiffness: 500, damping: 30 }}
       className={className}
       style={{
-        backgroundColor: '#FFFFFF',
-        borderRadius: 14,
-        border: '0.5px solid #EDE8F5',
-        padding: 12,
+        backgroundColor: elevated ? '#1B2436' : '#161D2B',
+        borderRadius: 16,
+        border: '1px solid rgba(255,255,255,0.08)',
+        padding: 16,
         cursor: onClick ? 'pointer' : 'default',
         ...styleProp,
       }}

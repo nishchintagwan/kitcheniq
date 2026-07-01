@@ -5,7 +5,7 @@ import { ArrowRight, AlertTriangle } from 'lucide-react'
 import { useIngredientStore } from '../stores/ingredientStore'
 import { getSpikeInsights, dismissSpikeInsights } from '../lib/queries'
 import { getMarginStatus, formatCurrency } from '../lib/costCalculator'
-import DarkHeader from '../components/ui/DarkHeader'
+import GlacierHeader from '../components/ui/GlacierHeader'
 import Card from '../components/ui/Card'
 import StatusBadge from '../components/ui/StatusBadge'
 import Skeleton from '../components/ui/Skeleton'
@@ -60,7 +60,7 @@ export default function AlertDetailScreen() {
   if (!spike) {
     return (
       <div style={{ backgroundColor: '#FFFAF5', minHeight: '100vh' }}>
-        <DarkHeader title="Price alert" showBack breadcrumb="Dashboard" />
+        <GlacierHeader title="Price alert" showBack breadcrumb="Dashboard" />
         <div style={{ padding: '48px 16px', textAlign: 'center' }}>
           <p style={{ fontSize: 14, color: '#888888', margin: 0 }}>
             This alert is no longer active.
@@ -90,7 +90,7 @@ export default function AlertDetailScreen() {
 
   return (
     <div style={{ backgroundColor: '#FFFAF5', minHeight: '100vh' }}>
-      <DarkHeader
+      <GlacierHeader
         title="Price alert"
         subtitle={headerSubtitle}
         showBack

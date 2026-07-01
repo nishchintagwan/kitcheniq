@@ -7,7 +7,7 @@ import { useRestaurantStore } from '../stores/restaurantStore'
 import { useRecipeStore } from '../stores/recipeStore'
 import { useIngredientStore } from '../stores/ingredientStore'
 import { formatCurrency, formatMargin } from '../lib/costCalculator'
-import DarkHeader from '../components/ui/DarkHeader'
+import GlacierHeader from '../components/ui/GlacierHeader'
 import Logo from '../components/ui/Logo'
 import Card from '../components/ui/Card'
 import StatCard from '../components/ui/StatCard'
@@ -227,10 +227,10 @@ export default function DashboardScreen() {
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      <DarkHeader
+      <GlacierHeader
         leftElement={
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Logo size={22} />
+            <Logo />
             <span
               style={{
                 color: '#FFFFFF',

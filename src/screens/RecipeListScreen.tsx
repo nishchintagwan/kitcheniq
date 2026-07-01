@@ -6,7 +6,7 @@ import { useRestaurantStore } from '../stores/restaurantStore'
 import { useRecipeStore } from '../stores/recipeStore'
 import { useIngredientStore } from '../stores/ingredientStore'
 import { formatCurrency, formatMargin } from '../lib/costCalculator'
-import DarkHeader from '../components/ui/DarkHeader'
+import GlacierHeader from '../components/ui/GlacierHeader'
 import Card from '../components/ui/Card'
 import MarginBar from '../components/ui/MarginBar'
 import StatusBadge from '../components/ui/StatusBadge'
@@ -111,7 +111,7 @@ export default function RecipeListScreen() {
 
   return (
     <div style={{ backgroundColor: '#FFFAF5', minHeight: '100vh' }}>
-      <DarkHeader
+      <GlacierHeader
         title="Your menu"
         subtitle={
           isLoading ? undefined : `${recipes.length} dish${recipes.length !== 1 ? 'es' : ''}`

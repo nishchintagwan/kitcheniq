@@ -106,7 +106,7 @@ export default function SplashScreen() {
       >
         {/* Logo with breathe */}
         <div style={{ animation: 'breathe 4s ease-in-out infinite' }}>
-          <Logo size={48} />
+          <Logo />
         </div>
 
         {/* App name */}

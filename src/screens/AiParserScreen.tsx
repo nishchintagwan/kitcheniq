@@ -4,7 +4,7 @@ import { Check } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useRestaurantStore } from '../stores/restaurantStore'
 import { calculateMargin, formatCurrency, formatMargin, ingredientCost } from '../lib/costCalculator'
-import DarkHeader from '../components/ui/DarkHeader'
+import GlacierHeader from '../components/ui/GlacierHeader'
 import Button from '../components/ui/Button'
 import Skeleton from '../components/ui/Skeleton'
 import MarginBar from '../components/ui/MarginBar'
@@ -222,7 +222,7 @@ export default function AiParserScreen() {
 
   return (
     <div style={{ backgroundColor: '#FFFAF5', minHeight: '100vh' }}>
-      <DarkHeader
+      <GlacierHeader
         title="Add your first dish"
         subtitle="Type it naturally — AI will understand"
       />

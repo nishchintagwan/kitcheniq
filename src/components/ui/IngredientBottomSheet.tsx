@@ -65,7 +65,7 @@ export default function IngredientBottomSheet({ isOpen, onClose, onAdd, restaura
             style={{
               position: 'fixed',
               inset: 0,
-              backgroundColor: 'rgba(0,0,0,0.4)',
+              backgroundColor: 'rgba(0,0,0,0.7)',
               zIndex: 40,
             }}
           />
@@ -80,7 +80,7 @@ export default function IngredientBottomSheet({ isOpen, onClose, onAdd, restaura
               bottom: 0,
               left: 0,
               right: 0,
-              backgroundColor: '#FFFFFF',
+              backgroundColor: '#161D2B',
               borderRadius: '20px 20px 0 0',
               zIndex: 50,
               maxHeight: '80vh',
@@ -90,7 +90,7 @@ export default function IngredientBottomSheet({ isOpen, onClose, onAdd, restaura
           >
             {/* Drag handle */}
             <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 12, paddingBottom: 6 }}>
-              <div style={{ width: 32, height: 4, backgroundColor: '#EDE8F5', borderRadius: 999 }} />
+              <div style={{ width: 36, height: 4, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 999 }} />
             </div>
 
             {/* Header */}
@@ -100,10 +100,10 @@ export default function IngredientBottomSheet({ isOpen, onClose, onAdd, restaura
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 padding: '0 16px 12px',
-                borderBottom: '0.5px solid #EDE8F5',
+                borderBottom: '1px solid rgba(255,255,255,0.06)',
               }}
             >
-              <span style={{ fontSize: 14, fontWeight: 700, color: '#1A1A1A' }}>
+              <span style={{ fontSize: 14, fontWeight: 700, color: '#F4F6FA' }}>
                 {selectedId ? selectedIng?.name : 'Add ingredient'}
               </span>
               <button
@@ -111,7 +111,7 @@ export default function IngredientBottomSheet({ isOpen, onClose, onAdd, restaura
                 aria-label="Close"
                 style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, lineHeight: 1 }}
               >
-                <X size={18} strokeWidth={1.5} color="#888888" />
+                <X size={18} strokeWidth={1.5} color="#6B7588" />
               </button>
             </div>
 
@@ -122,7 +122,7 @@ export default function IngredientBottomSheet({ isOpen, onClose, onAdd, restaura
                   <Search
                     size={14}
                     strokeWidth={1.5}
-                    color="#888888"
+                    color="#6B7588"
                     style={{
                       position: 'absolute',
                       left: 12,
@@ -139,12 +139,12 @@ export default function IngredientBottomSheet({ isOpen, onClose, onAdd, restaura
                     style={{
                       width: '100%',
                       boxSizing: 'border-box',
-                      backgroundColor: '#FFFAF5',
-                      border: '0.5px solid #EDE8F5',
+                      backgroundColor: '#1B2436',
+                      border: '1px solid rgba(255,255,255,0.14)',
                       borderRadius: 10,
                       padding: '10px 12px 10px 34px',
                       fontSize: 13,
-                      color: '#1A1A1A',
+                      color: '#F4F6FA',
                       fontFamily: 'inherit',
                       outline: 'none',
                     }}
@@ -166,26 +166,27 @@ export default function IngredientBottomSheet({ isOpen, onClose, onAdd, restaura
                         alignItems: 'center',
                         justifyContent: 'space-between',
                         padding: '12px 16px',
-                        borderBottom: idx < filtered.length - 1 ? '0.5px solid #EDE8F5' : 'none',
+                        borderBottom: idx < filtered.length - 1 ? '1px solid rgba(255,255,255,0.06)' : 'none',
                         fontFamily: 'inherit',
                         textAlign: 'left',
+                        backgroundColor: '#1B2436',
                       }}
                     >
-                      <span style={{ fontSize: 13, color: '#1A1A1A', fontWeight: 500 }}>{ing.name}</span>
-                      <span style={{ fontSize: 11, color: '#888888' }}>
+                      <span style={{ fontSize: 13, color: '#F4F6FA', fontWeight: 500 }}>{ing.name}</span>
+                      <span style={{ fontSize: 11, color: '#9AA4B8' }}>
                         ₹{ing.price_per_kg}/{ing.unit}
                       </span>
                     </button>
                   ))}
 
                   {filtered.length === 0 && (
-                    <p style={{ textAlign: 'center', color: '#888888', fontSize: 13, padding: '32px 0 16px' }}>
+                    <p style={{ textAlign: 'center', color: '#6B7588', fontSize: 13, padding: '32px 0 16px' }}>
                       No ingredients found
                     </p>
                   )}
 
                   {/* Create new ingredient link */}
-                  <div style={{ padding: '12px 16px', borderTop: '0.5px solid #EDE8F5' }}>
+                  <div style={{ padding: '12px 16px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
                     <button
                       onClick={() => {
                         onClose()
@@ -195,7 +196,7 @@ export default function IngredientBottomSheet({ isOpen, onClose, onAdd, restaura
                         background: 'none',
                         border: 'none',
                         cursor: 'pointer',
-                        color: '#7C3AED',
+                        color: '#3FC6F0',
                         fontSize: 12,
                         fontFamily: 'inherit',
                         padding: 0,
@@ -209,7 +210,7 @@ export default function IngredientBottomSheet({ isOpen, onClose, onAdd, restaura
             ) : (
               /* Quantity + unit selection */
               <div style={{ padding: '16px 16px 32px', flex: 1, overflowY: 'auto' }}>
-                <p style={{ fontSize: 10, color: '#888888', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 6px' }}>
+                <p style={{ fontSize: 10, color: '#6B7588', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 6px', fontWeight: 800 }}>
                   Quantity
                 </p>
                 <input
@@ -222,19 +223,19 @@ export default function IngredientBottomSheet({ isOpen, onClose, onAdd, restaura
                   style={{
                     width: '100%',
                     boxSizing: 'border-box',
-                    backgroundColor: '#FFFAF5',
-                    border: '0.5px solid #EDE8F5',
+                    backgroundColor: '#1B2436',
+                    border: '1px solid rgba(255,255,255,0.14)',
                     borderRadius: 10,
-                    padding: '10px 12px',
+                    padding: '12px 14px',
                     fontSize: 13,
-                    color: '#1A1A1A',
+                    color: '#F4F6FA',
                     fontFamily: 'inherit',
                     outline: 'none',
                     marginBottom: 16,
                   }}
                 />
 
-                <p style={{ fontSize: 10, color: '#888888', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 8px' }}>
+                <p style={{ fontSize: 10, color: '#6B7588', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 8px', fontWeight: 800 }}>
                   Unit
                 </p>
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 16 }}>
@@ -243,15 +244,15 @@ export default function IngredientBottomSheet({ isOpen, onClose, onAdd, restaura
                       key={u}
                       onClick={() => setUnit(u)}
                       style={{
-                        backgroundColor: unit === u ? '#7C3AED' : '#F5F0FA',
-                        color: unit === u ? '#FFFFFF' : '#7C3AED',
-                        border: 'none',
+                        backgroundColor: unit === u ? '#3FC6F0' : '#0C111B',
+                        color: unit === u ? '#04212E' : '#9AA4B8',
+                        border: unit === u ? 'none' : '1px solid rgba(255,255,255,0.14)',
                         borderRadius: 9999,
                         padding: '6px 14px',
                         fontSize: 12,
                         fontFamily: 'inherit',
                         cursor: 'pointer',
-                        fontWeight: unit === u ? 600 : 400,
+                        fontWeight: unit === u ? 700 : 400,
                       }}
                     >
                       {u}
@@ -260,7 +261,7 @@ export default function IngredientBottomSheet({ isOpen, onClose, onAdd, restaura
                 </div>
 
                 {qty > 0 && (
-                  <p style={{ fontSize: 12, color: '#7C3AED', marginBottom: 20, fontWeight: 500 }}>
+                  <p style={{ fontSize: 12, color: '#3FC6F0', marginBottom: 20, fontWeight: 600 }}>
                     Cost: ₹{liveCost.toFixed(2)}
                   </p>
                 )}
@@ -270,9 +271,9 @@ export default function IngredientBottomSheet({ isOpen, onClose, onAdd, restaura
                     onClick={() => setSelectedId(null)}
                     style={{
                       flex: 1,
-                      backgroundColor: '#FFFFFF',
-                      color: '#1A1A1A',
-                      border: '0.5px solid #EDE8F5',
+                      backgroundColor: 'rgba(255,255,255,0.06)',
+                      color: '#F4F6FA',
+                      border: '1px solid rgba(255,255,255,0.14)',
                       borderRadius: 10,
                       padding: 12,
                       fontSize: 13,
@@ -287,16 +288,17 @@ export default function IngredientBottomSheet({ isOpen, onClose, onAdd, restaura
                     disabled={qty <= 0}
                     style={{
                       flex: 2,
-                      backgroundColor: '#7C3AED',
-                      color: '#FFFFFF',
+                      backgroundColor: '#3FC6F0',
+                      color: '#04212E',
                       border: 'none',
                       borderRadius: 10,
                       padding: 12,
                       fontSize: 13,
                       fontFamily: 'inherit',
+                      fontWeight: 700,
                       cursor: qty > 0 ? 'pointer' : 'not-allowed',
                       opacity: qty > 0 ? 1 : 0.5,
-                      boxShadow: '0 4px 16px rgba(124,58,237,0.3)',
+                      boxShadow: '0 4px 16px rgba(63,198,240,0.25)',
                     }}
                   >
                     Add to recipe

@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { supabase } from '../lib/supabase'
 import { getRestaurant } from '../lib/queries'
-import DarkHeader from '../components/ui/DarkHeader'
+import GlacierHeader from '../components/ui/GlacierHeader'
 import Button from '../components/ui/Button'
 
 export default function OtpScreen() {
@@ -116,7 +116,7 @@ export default function OtpScreen() {
 
   return (
     <div style={{ backgroundColor: '#FFFAF5', minHeight: '100vh' }}>
-      <DarkHeader
+      <GlacierHeader
         title="Check your email"
         subtitle="Enter the 6-digit code we sent you"
         showBack

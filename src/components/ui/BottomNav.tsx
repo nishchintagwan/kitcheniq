@@ -1,13 +1,13 @@
 import { useLocation, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Home, UtensilsCrossed, Package, Lightbulb, Settings } from 'lucide-react'
+import { Home, UtensilsCrossed, Zap, Bell, MoreHorizontal } from 'lucide-react'
 
 const tabs = [
-  { label: 'Home',        path: '/dashboard',   Icon: Home           },
-  { label: 'Recipes',     path: '/recipes',      Icon: UtensilsCrossed },
-  { label: 'Ingredients', path: '/ingredients',  Icon: Package         },
-  { label: 'Insights',    path: '/insights',     Icon: Lightbulb       },
-  { label: 'Settings',    path: '/settings',     Icon: Settings        },
+  { label: 'Dashboard', path: '/dashboard',  Icon: Home            },
+  { label: 'Dishes',    path: '/recipes',    Icon: UtensilsCrossed  },
+  { label: 'Autopilot', path: '/autopilot',  Icon: Zap              },
+  { label: 'Alerts',    path: '/alerts',     Icon: Bell             },
+  { label: 'More',      path: '/more',       Icon: MoreHorizontal   },
 ]
 
 export default function BottomNav() {
@@ -23,23 +23,26 @@ export default function BottomNav() {
     <nav
       style={{
         position: 'fixed',
-        bottom: 0,
+        bottom: 14,
         left: '50%',
         transform: 'translateX(-50%)',
-        width: '100%',
-        maxWidth: 430,
-        backgroundColor: '#FFFFFF',
-        borderTop: '0.5px solid #EDE8F5',
-        display: 'flex',
+        width: 'calc(100% - 28px)',
+        maxWidth: 402,
+        height: 66,
+        background: 'rgba(20,26,38,0.9)',
+        backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)',
+        border: '1px solid rgba(255,255,255,0.14)',
+        borderRadius: 9999,
+        display: 'grid',
+        gridTemplateColumns: 'repeat(5,1fr)',
         alignItems: 'center',
-        justifyContent: 'space-around',
-        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
         zIndex: 50,
       }}
     >
       {tabs.map(({ label, path, Icon }) => {
         const active = isActive(path)
-        const color = active ? '#7C3AED' : '#BBBBBB'
+        const color = active ? '#3FC6F0' : '#6B7588'
 
         return (
           <motion.button
@@ -52,7 +55,6 @@ export default function BottomNav() {
               flexDirection: 'column',
               alignItems: 'center',
               gap: 3,
-              flex: 1,
               padding: '10px 0',
               background: 'none',
               border: 'none',
@@ -61,7 +63,7 @@ export default function BottomNav() {
             }}
           >
             <Icon size={18} strokeWidth={1.5} color={color} />
-            <span style={{ fontSize: 9, color, fontWeight: active ? 600 : 400 }}>
+            <span style={{ fontSize: 8, color, fontWeight: active ? 800 : 400, letterSpacing: '0.01em' }}>
               {label}
             </span>
           </motion.button>

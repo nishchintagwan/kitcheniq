@@ -5,7 +5,7 @@ import { motion } from 'framer-motion'
 import { supabase } from '../lib/supabase'
 import { useRestaurantStore } from '../stores/restaurantStore'
 import { useIngredientStore } from '../stores/ingredientStore'
-import DarkHeader from '../components/ui/DarkHeader'
+import GlacierHeader from '../components/ui/GlacierHeader'
 import Card from '../components/ui/Card'
 import Skeleton from '../components/ui/Skeleton'
 import BottomNav from '../components/ui/BottomNav'
@@ -127,7 +127,7 @@ export default function IngredientManagerScreen() {
 
   return (
     <div style={{ backgroundColor: '#FFFAF5', minHeight: '100vh' }}>
-      <DarkHeader
+      <GlacierHeader
         title="Ingredients"
         subtitle={headerSubtitle}
         rightElement={

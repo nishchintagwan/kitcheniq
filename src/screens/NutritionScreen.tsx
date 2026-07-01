@@ -6,7 +6,7 @@ import { supabase } from '../lib/supabase'
 import { useRecipeStore } from '../stores/recipeStore'
 import { useIngredientStore } from '../stores/ingredientStore'
 import { getNutritionData } from '../lib/queries'
-import DarkHeader from '../components/ui/DarkHeader'
+import GlacierHeader from '../components/ui/GlacierHeader'
 import Skeleton from '../components/ui/Skeleton'
 import BottomNav from '../components/ui/BottomNav'
 import type { NutritionData } from '../types'
@@ -202,7 +202,7 @@ export default function NutritionScreen() {
 
   return (
     <div style={{ backgroundColor: '#FFFAF5', minHeight: '100vh' }}>
-      <DarkHeader
+      <GlacierHeader
         title="Nutrition label"
         subtitle={recipe?.name}
         showBack

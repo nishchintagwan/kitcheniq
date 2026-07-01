@@ -6,7 +6,7 @@ import { z } from 'zod'
 import { supabase } from '../lib/supabase'
 import { getRestaurant } from '../lib/queries'
 import { useRestaurantStore } from '../stores/restaurantStore'
-import DarkHeader from '../components/ui/DarkHeader'
+import GlacierHeader from '../components/ui/GlacierHeader'
 import Button from '../components/ui/Button'
 import Skeleton from '../components/ui/Skeleton'
 import type { CuisineType } from '../types'
@@ -119,7 +119,7 @@ export default function RestaurantSetupScreen() {
 
   return (
     <div style={{ backgroundColor: '#FFFAF5', minHeight: '100vh' }}>
-      <DarkHeader
+      <GlacierHeader
         title="Set up your restaurant"
         subtitle="Takes 30 seconds"
       />

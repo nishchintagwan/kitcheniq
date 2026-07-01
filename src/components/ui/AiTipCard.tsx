@@ -11,7 +11,8 @@ export default function AiTipCard({ tip, isLoading }: AiTipCardProps) {
     return (
       <div
         style={{
-          backgroundColor: '#F5F0FA',
+          backgroundColor: 'rgba(63,198,240,0.14)',
+          border: '1px solid rgba(63,198,240,0.25)',
           borderRadius: 14,
           padding: 12,
         }}
@@ -26,7 +27,8 @@ export default function AiTipCard({ tip, isLoading }: AiTipCardProps) {
   return (
     <div
       style={{
-        backgroundColor: '#F5F0FA',
+        backgroundColor: 'rgba(63,198,240,0.14)',
+        border: '1px solid rgba(63,198,240,0.25)',
         borderRadius: 14,
         padding: 12,
         display: 'flex',
@@ -34,10 +36,10 @@ export default function AiTipCard({ tip, isLoading }: AiTipCardProps) {
         alignItems: 'flex-start',
       }}
     >
-      <Sparkles size={14} strokeWidth={1.5} color="#7C3AED" style={{ flexShrink: 0, marginTop: 1 }} />
+      <Sparkles size={14} strokeWidth={1.5} color="#3FC6F0" style={{ flexShrink: 0, marginTop: 1 }} />
       <p
         style={{
-          color: '#5B21B6',
+          color: '#3FC6F0',
           fontSize: 11,
           margin: 0,
           lineHeight: 1.5,

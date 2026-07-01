@@ -11,9 +11,9 @@ export default function Skeleton({ width = '100%', height = 48, radius = 10 }: S
         width,
         height,
         borderRadius: radius,
-        background: 'linear-gradient(90deg, #F0EBF8 25%, #E8E0F5 50%, #F0EBF8 75%)',
+        background: 'linear-gradient(90deg, #1B2436 25%, #243046 50%, #1B2436 75%)',
         backgroundSize: '200% 100%',
-        animation: 'shimmer 1.5s infinite',
+        animation: 'shimmer-dark 1.5s infinite',
       }}
     />
   )

@@ -6,7 +6,7 @@ import { supabase } from '../lib/supabase'
 import { useRestaurantStore } from '../stores/restaurantStore'
 import { useIngredientStore } from '../stores/ingredientStore'
 import { useRecipeStore } from '../stores/recipeStore'
-import DarkHeader from '../components/ui/DarkHeader'
+import GlacierHeader from '../components/ui/GlacierHeader'
 import BottomNav from '../components/ui/BottomNav'
 import type { CuisineType } from '../types'
 
@@ -322,7 +322,7 @@ export default function SettingsScreen() {
 
   return (
     <div style={{ backgroundColor: '#FFFAF5', minHeight: '100vh' }}>
-      <DarkHeader title="Settings" />
+      <GlacierHeader title="Settings" />
 
       <div style={{ padding: '16px 16px 96px', display: 'flex', flexDirection: 'column', gap: 20 }}>
 

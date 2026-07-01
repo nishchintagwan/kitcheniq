@@ -5,9 +5,9 @@ interface StatusBadgeProps {
 }
 
 const config: Record<MarginStatus, { bg: string; color: string; label: string }> = {
-  healthy:  { bg: '#F0FBF5', color: '#00A36C', label: 'Healthy'  },
-  watch:    { bg: '#FFF8EC', color: '#F59E0B', label: 'Watch'    },
-  critical: { bg: '#FFF5F6', color: '#FF505F', label: 'Critical' },
+  healthy:  { bg: 'rgba(54,211,153,0.14)',  color: '#36D399', label: 'Healthy'  },
+  watch:    { bg: 'rgba(240,169,63,0.14)',  color: '#F0A93F', label: 'Watch'    },
+  critical: { bg: 'rgba(240,89,107,0.14)', color: '#F0596B', label: 'Critical' },
 }
 
 export default function StatusBadge({ status }: StatusBadgeProps) {
@@ -20,9 +20,11 @@ export default function StatusBadge({ status }: StatusBadgeProps) {
         backgroundColor: bg,
         color,
         fontSize: 9,
-        fontWeight: 600,
+        fontWeight: 800,
         padding: '2px 8px',
         borderRadius: 9999,
+        textTransform: 'uppercase',
+        letterSpacing: '0.04em',
       }}
     >
       {label}

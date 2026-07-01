@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Check, Search } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useRestaurantStore } from '../stores/restaurantStore'
-import DarkHeader from '../components/ui/DarkHeader'
+import GlacierHeader from '../components/ui/GlacierHeader'
 import Button from '../components/ui/Button'
 import Skeleton from '../components/ui/Skeleton'
 
@@ -123,7 +123,7 @@ export default function IngredientPickerScreen() {
 
   return (
     <div style={{ backgroundColor: '#FFFAF5', minHeight: '100vh' }}>
-      <DarkHeader
+      <GlacierHeader
         title="Set your ingredient prices"
         subtitle="Update from what you pay at the mandi"
       />

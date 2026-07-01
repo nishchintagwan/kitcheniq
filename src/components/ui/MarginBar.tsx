@@ -3,16 +3,16 @@ interface MarginBarProps {
   height?: number
 }
 
-export default function MarginBar({ percent, height = 3 }: MarginBarProps) {
+export default function MarginBar({ percent, height = 4 }: MarginBarProps) {
   const clamped = Math.min(100, Math.max(0, percent))
-  const fillColor = clamped >= 50 ? '#00DC82' : clamped >= 30 ? '#FBB924' : '#FF505F'
+  const fillColor = clamped >= 50 ? '#36D399' : clamped >= 30 ? '#F0A93F' : '#F0596B'
 
   return (
     <div
       style={{
         width: '100%',
         height,
-        backgroundColor: '#F5F0FA',
+        backgroundColor: 'rgba(255,255,255,0.06)',
         borderRadius: 999,
         overflow: 'hidden',
       }}

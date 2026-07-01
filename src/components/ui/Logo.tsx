@@ -1,38 +1,18 @@
-interface LogoProps {
-  size?: number
-}
-
-export default function Logo({ size = 22 }: LogoProps) {
-  const radius = Math.round(size * 0.24)
-
+export default function Logo() {
   return (
     <div
       style={{
-        width: size,
-        height: size,
-        borderRadius: radius,
-        backgroundColor: '#7C3AED',
-        boxShadow: '0 4px 12px rgba(124,58,237,0.35)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        flexShrink: 0,
+        display: 'inline-flex',
+        alignItems: 'baseline',
+        fontFamily: 'Inter, sans-serif',
+        fontSize: 18,
+        fontWeight: 800,
+        letterSpacing: '-0.3px',
+        lineHeight: 1,
       }}
     >
-      <svg
-        width={size * 0.7}
-        height={size * 0.7}
-        viewBox="0 0 24 24"
-        fill="none"
-      >
-        <path
-          d="M5 20 L12 4 L19 20 M8 13.5 L16 13.5"
-          stroke="white"
-          strokeWidth={2.5}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
+      <span style={{ color: '#F4F6FA' }}>Kitchen</span>
+      <span style={{ color: '#3FC6F0' }}>IQ</span>
     </div>
   )
 }

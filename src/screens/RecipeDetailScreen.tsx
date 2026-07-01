@@ -7,7 +7,7 @@ import { useRestaurantStore } from '../stores/restaurantStore'
 import { useRecipeStore } from '../stores/recipeStore'
 import { useIngredientStore } from '../stores/ingredientStore'
 import { ingredientCost, formatCurrency } from '../lib/costCalculator'
-import DarkHeader from '../components/ui/DarkHeader'
+import GlacierHeader from '../components/ui/GlacierHeader'
 import Card from '../components/ui/Card'
 import MarginBar from '../components/ui/MarginBar'
 import StatusBadge from '../components/ui/StatusBadge'
@@ -185,7 +185,7 @@ export default function RecipeDetailScreen() {
   if (!recipe) {
     return (
       <div style={{ backgroundColor: '#FFFAF5', minHeight: '100vh' }}>
-        <DarkHeader showBack breadcrumb="Menu" title="Recipe" />
+        <GlacierHeader showBack breadcrumb="Menu" title="Recipe" />
         <div style={{ padding: 24, textAlign: 'center' }}>
           <p style={{ color: '#888888', fontSize: 13 }}>Recipe not found</p>
         </div>
@@ -198,7 +198,7 @@ export default function RecipeDetailScreen() {
 
   return (
     <div style={{ backgroundColor: '#FFFAF5', minHeight: '100vh' }}>
-      <DarkHeader
+      <GlacierHeader
         title={recipe.name}
         showBack
         breadcrumb="Menu"
