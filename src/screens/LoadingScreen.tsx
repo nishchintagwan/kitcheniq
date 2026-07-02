@@ -9,8 +9,19 @@ export default function LoadingScreen() {
   useEffect(() => {
     async function redirect() {
       if (localStorage.getItem('kitcheniq_dev') === '1') {
-        const { restaurant } = useRestaurantStore.getState()
-        navigate(restaurant ? '/dashboard' : '/setup', { replace: true })
+        const store = useRestaurantStore.getState()
+        if (!store.restaurant) {
+          store.setRestaurant({
+            id: 'dev-restaurant',
+            owner_id: 'dev-user',
+            name: 'Dev Restaurant',
+            city: 'Delhi',
+            cuisine_type: 'north-indian',
+            fssai_number: null,
+            created_at: new Date().toISOString(),
+          })
+        }
+        navigate('/dashboard', { replace: true })
         return
       }
       const { data } = await supabase.auth.getSession()
