@@ -61,6 +61,8 @@ const errorStyle: React.CSSProperties = {
   marginTop: 4,
 }
 
+const IS_DEV = localStorage.getItem('kitcheniq_dev') === '1'
+
 export default function RestaurantSetupScreen() {
   const navigate = useNavigate()
   const { setRestaurant } = useRestaurantStore()
@@ -100,7 +102,7 @@ export default function RestaurantSetupScreen() {
           fssai_number: formData.fssai_number || null,
           created_at: new Date().toISOString(),
         })
-        navigate('/onboarding/import')
+        navigate('/dashboard')
         return
       }
 
@@ -284,9 +286,18 @@ export default function RestaurantSetupScreen() {
               </div>
 
               <div style={{ paddingTop: 8 }}>
-                <Button type="submit" fullWidth>
-                  Let's go →
-                </Button>
+                {IS_DEV ? (
+                  <Button type="button" fullWidth onClick={() => {
+                    setRestaurant({ id: 'dev-restaurant', owner_id: 'dev-user', name: 'Dev Restaurant', city: 'Delhi', cuisine_type: 'north-indian', fssai_number: null, created_at: new Date().toISOString() })
+                    navigate('/dashboard')
+                  }}>
+                    Let's go →
+                  </Button>
+                ) : (
+                  <Button type="submit" fullWidth>
+                    Let's go →
+                  </Button>
+                )}
               </div>
             </div>
           </form>
