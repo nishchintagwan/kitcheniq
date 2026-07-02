@@ -6,7 +6,6 @@ import { useIngredientStore } from '../stores/ingredientStore'
 import { getSpikeInsights, dismissSpikeInsights } from '../lib/queries'
 import { getMarginStatus, formatCurrency } from '../lib/costCalculator'
 import GlacierHeader from '../components/ui/GlacierHeader'
-import Card from '../components/ui/Card'
 import StatusBadge from '../components/ui/StatusBadge'
 import Skeleton from '../components/ui/Skeleton'
 import BottomNav from '../components/ui/BottomNav'
@@ -30,6 +29,8 @@ function relativeTime(dateString: string): string {
   return `${days} days ago`
 }
 
+const STATUS_COLOR: Record<string, string> = { healthy: '#36D399', watch: '#F0A93F', critical: '#F0596B' }
+
 export default function AlertDetailScreen() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
@@ -43,10 +44,7 @@ export default function AlertDetailScreen() {
 
   useEffect(() => {
     if (!id) return
-    getSpikeInsights(id).then((data) => {
-      setInsights(data)
-      setInsightsLoading(false)
-    })
+    getSpikeInsights(id).then((data) => { setInsights(data); setInsightsLoading(false) })
   }, [id])
 
   async function handleDismiss() {
@@ -59,12 +57,10 @@ export default function AlertDetailScreen() {
 
   if (!spike) {
     return (
-      <div style={{ backgroundColor: '#FFFAF5', minHeight: '100vh' }}>
-        <GlacierHeader title="Price alert" showBack breadcrumb="Dashboard" />
+      <div style={{ backgroundColor: '#0C111B', minHeight: '100vh' }}>
+        <GlacierHeader title="Price alert" showBack breadcrumb="Alerts" />
         <div style={{ padding: '48px 16px', textAlign: 'center' }}>
-          <p style={{ fontSize: 14, color: '#888888', margin: 0 }}>
-            This alert is no longer active.
-          </p>
+          <p style={{ fontSize: 14, color: '#9AA4B8', margin: 0 }}>This alert is no longer active.</p>
         </div>
         <BottomNav />
       </div>
@@ -76,241 +72,103 @@ export default function AlertDetailScreen() {
   const sign = changePercent > 0 ? '+' : ''
   const pct = `${sign}${Math.round(changePercent)}%`
 
-  const headerSubtitle = `${ingredient.name}: ₹${previousPrice} → ₹${newPrice}/${unit} (${pct})`
-
-  const criticalCount = affectedRecipes.filter(
-    (r) => getMarginStatus(r.newMargin) === 'critical'
-  ).length
-
-  const summaryText =
-    affectedRecipes.length === 0
-      ? 'No dishes affected'
-      : `${affectedRecipes.length} dish${affectedRecipes.length !== 1 ? 'es' : ''} affected` +
-        (criticalCount > 0 ? ` — ${criticalCount} now critical` : '')
+  const criticalCount = affectedRecipes.filter((r) => getMarginStatus(r.newMargin) === 'critical').length
+  const summaryText = affectedRecipes.length === 0
+    ? 'No dishes affected'
+    : `${affectedRecipes.length} dish${affectedRecipes.length !== 1 ? 'es' : ''} affected` +
+      (criticalCount > 0 ? ` — ${criticalCount} now critical` : '')
 
   return (
-    <div style={{ backgroundColor: '#FFFAF5', minHeight: '100vh' }}>
-      <GlacierHeader
-        title="Price alert"
-        subtitle={headerSubtitle}
-        showBack
-        breadcrumb="Dashboard"
-      />
+    <div style={{ backgroundColor: '#0C111B', minHeight: '100vh' }}>
+      <GlacierHeader title="Price alert" subtitle={`${ingredient.name}: ${pct}`} showBack breadcrumb="Alerts" />
 
       <div style={{ padding: '16px 16px 96px', display: 'flex', flexDirection: 'column', gap: 12 }}>
 
-        {/* ── Amber header card ── */}
-        <div
-          style={{
-            backgroundColor: '#FFF8EC',
-            border: '0.5px solid rgba(251,185,36,0.3)',
-            borderRadius: 14,
-            padding: 16,
-          }}
-        >
+        {/* Alert hero card */}
+        <div style={{ backgroundColor: 'rgba(240,169,63,0.14)', border: '1px solid rgba(240,169,63,0.3)', borderRadius: 14, padding: 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-            <AlertTriangle size={16} strokeWidth={1.5} color="#FBB924" />
-            <span style={{ fontSize: 15, fontWeight: 700, color: '#1A1A1A' }}>
-              {ingredient.name}
-            </span>
+            <AlertTriangle size={16} strokeWidth={1.5} color="#F0A93F" />
+            <span style={{ fontSize: 15, fontWeight: 700, color: '#F4F6FA' }}>{ingredient.name}</span>
           </div>
-
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-            <span style={{ fontSize: 20, fontWeight: 700, color: '#1A1A1A' }}>
-              ₹{previousPrice}/{unit}
-            </span>
-            <ArrowRight size={16} strokeWidth={1.5} color="#888888" />
-            <span
-              style={{
-                fontSize: 20,
-                fontWeight: 700,
-                color: changePercent > 0 ? '#FF505F' : '#00DC82',
-              }}
-            >
+            <span style={{ fontSize: 20, fontWeight: 700, color: '#9AA4B8' }}>₹{previousPrice}/{unit}</span>
+            <ArrowRight size={16} strokeWidth={1.5} color="#6B7588" />
+            <span style={{ fontSize: 20, fontWeight: 700, color: changePercent > 0 ? '#F0596B' : '#36D399' }}>
               ₹{newPrice}/{unit}
             </span>
-            <span
-              style={{
-                fontSize: 13,
-                fontWeight: 600,
-                color: changePercent > 0 ? '#FF505F' : '#00DC82',
-                backgroundColor: changePercent > 0
-                  ? 'rgba(255,80,95,0.1)'
-                  : 'rgba(0,220,130,0.1)',
-                borderRadius: 9999,
-                padding: '2px 8px',
-              }}
-            >
+            <span style={{
+              fontSize: 13, fontWeight: 700, color: changePercent > 0 ? '#F0596B' : '#36D399',
+              backgroundColor: changePercent > 0 ? 'rgba(240,89,107,0.15)' : 'rgba(54,211,153,0.15)',
+              borderRadius: 9999, padding: '2px 8px',
+            }}>
               {pct}
             </span>
           </div>
-
-          <p style={{ fontSize: 11, color: '#888888', margin: 0 }}>
-            {relativeTime(new Date().toISOString())}
-          </p>
+          <p style={{ fontSize: 11, color: '#9AA4B8', margin: 0 }}>{relativeTime(new Date().toISOString())}</p>
         </div>
 
-        {/* ── Summary ── */}
-        <p style={{ fontSize: 12, color: '#888888', margin: 0 }}>
-          {summaryText}
-        </p>
+        <p style={{ fontSize: 12, color: '#9AA4B8', margin: 0 }}>{summaryText}</p>
 
-        {/* ── Affected dishes ── */}
+        {/* Affected dishes */}
         {affectedRecipes.length > 0 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {affectedRecipes.map(({ recipe, oldMargin, newMargin }) => {
               const oldStatus = getMarginStatus(oldMargin)
               const newStatus = getMarginStatus(newMargin)
               const recommendation = insights.find((ins) => ins.recipe_id === recipe.id)
-
               return (
-                <Card key={recipe.id}>
-                  {/* Row 1: dish name */}
-                  <p
-                    style={{
-                      fontSize: 13,
-                      fontWeight: 700,
-                      color: '#1A1A1A',
-                      margin: '0 0 10px',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
+                <div key={recipe.id} style={{ backgroundColor: '#161D2B', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 14, padding: 14 }}>
+                  <p style={{ fontSize: 13, fontWeight: 700, color: '#F4F6FA', margin: '0 0 10px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {recipe.name}
                   </p>
-
-                  {/* Row 2: status badges with arrow */}
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 6,
-                      marginBottom: 8,
-                    }}
-                  >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
                     <StatusBadge status={oldStatus} />
-                    <ArrowRight size={12} strokeWidth={1.5} color="#888888" />
+                    <ArrowRight size={12} strokeWidth={1.5} color="#6B7588" />
                     <StatusBadge status={newStatus} />
                   </div>
-
-                  {/* Row 3: margin percentages with arrow */}
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 6,
-                      marginBottom: 10,
-                    }}
-                  >
-                    <span style={{ fontSize: 13, fontWeight: 600, color: '#888888' }}>
-                      {oldMargin.toFixed(1)}%
-                    </span>
-                    <ArrowRight size={12} strokeWidth={1.5} color="#888888" />
-                    <span
-                      style={{
-                        fontSize: 13,
-                        fontWeight: 700,
-                        color:
-                          newStatus === 'healthy'
-                            ? '#00DC82'
-                            : newStatus === 'watch'
-                            ? '#FBB924'
-                            : '#FF505F',
-                      }}
-                    >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: '#9AA4B8' }}>{oldMargin.toFixed(1)}%</span>
+                    <ArrowRight size={12} strokeWidth={1.5} color="#6B7588" />
+                    <span style={{ fontSize: 13, fontWeight: 700, color: STATUS_COLOR[newStatus] ?? '#9AA4B8' }}>
                       {newMargin.toFixed(1)}%
                     </span>
-                    <span style={{ fontSize: 11, color: '#888888' }}>
-                      ({formatCurrency(recipe.selling_price)})
-                    </span>
+                    <span style={{ fontSize: 11, color: '#9AA4B8' }}>({formatCurrency(recipe.selling_price)})</span>
                   </div>
 
-                  {/* Row 4: AI recommendation */}
                   {insightsLoading ? (
                     <Skeleton height={32} radius={6} />
                   ) : recommendation ? (
-                    <p
-                      style={{
-                        fontSize: 12,
-                        color: '#5B21B6',
-                        fontStyle: 'italic',
-                        margin: '0 0 12px',
-                        lineHeight: 1.5,
-                        borderLeft: '2px solid rgba(91,33,182,0.25)',
-                        paddingLeft: 10,
-                      }}
-                    >
+                    <p style={{ fontSize: 12, color: '#9AA4B8', fontStyle: 'italic', margin: '0 0 12px', lineHeight: 1.5, borderLeft: '2px solid rgba(63,198,240,0.3)', paddingLeft: 10 }}>
                       {recommendation.message}
                     </p>
                   ) : null}
 
-                  {/* Row 5: Action buttons */}
                   <div style={{ display: 'flex', gap: 8 }}>
                     <motion.button
-                      whileTap={{ scale: 0.96, opacity: 0.85 }}
-                      transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                      whileTap={{ scale: 0.96, opacity: 0.85 }} transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                       onClick={() => navigate(`/ingredients/${ingredient.id}`)}
-                      style={{
-                        flex: 1,
-                        backgroundColor: '#7C3AED',
-                        color: '#FFFFFF',
-                        border: 'none',
-                        borderRadius: 10,
-                        padding: '9px 0',
-                        fontSize: 12,
-                        fontWeight: 600,
-                        fontFamily: 'inherit',
-                        cursor: 'pointer',
-                        boxShadow: '0 4px 16px rgba(124,58,237,0.3)',
-                      }}
+                      style={{ flex: 1, backgroundColor: '#3FC6F0', color: '#04212E', border: 'none', borderRadius: 10, padding: '9px 0', fontSize: 12, fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer', boxShadow: '0 4px 16px rgba(63,198,240,0.25)' }}
                     >
                       Update price
                     </motion.button>
                     <motion.button
-                      whileTap={{ scale: 0.96, opacity: 0.85 }}
-                      transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                      whileTap={{ scale: 0.96, opacity: 0.85 }} transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                       onClick={() => navigate(`/recipes/${recipe.id}`)}
-                      style={{
-                        flex: 1,
-                        backgroundColor: 'transparent',
-                        color: '#7C3AED',
-                        border: '0.5px solid #EDE8F5',
-                        borderRadius: 10,
-                        padding: '9px 0',
-                        fontSize: 12,
-                        fontWeight: 600,
-                        fontFamily: 'inherit',
-                        cursor: 'pointer',
-                      }}
+                      style={{ flex: 1, backgroundColor: 'transparent', color: '#3FC6F0', border: '1px solid rgba(63,198,240,0.3)', borderRadius: 10, padding: '9px 0', fontSize: 12, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer' }}
                     >
                       View dish
                     </motion.button>
                   </div>
-                </Card>
+                </div>
               )
             })}
           </div>
         )}
 
-        {/* ── Dismiss button ── */}
         <motion.button
-          whileTap={{ scale: 0.96, opacity: 0.85 }}
-          transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-          onClick={handleDismiss}
-          disabled={isDismissing}
-          style={{
-            width: '100%',
-            backgroundColor: 'transparent',
-            color: isDismissing ? '#888888' : '#1A1A1A',
-            border: '0.5px solid #EDE8F5',
-            borderRadius: 10,
-            padding: '12px 0',
-            fontSize: 13,
-            fontFamily: 'inherit',
-            cursor: isDismissing ? 'not-allowed' : 'pointer',
-            marginTop: 4,
-          }}
+          whileTap={{ scale: 0.96, opacity: 0.85 }} transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+          onClick={handleDismiss} disabled={isDismissing}
+          style={{ width: '100%', backgroundColor: 'transparent', color: isDismissing ? '#6B7588' : '#9AA4B8', border: '1px solid rgba(255,255,255,0.14)', borderRadius: 10, padding: '12px 0', fontSize: 13, fontFamily: 'inherit', cursor: isDismissing ? 'not-allowed' : 'pointer', marginTop: 4 }}
         >
           {isDismissing ? 'Dismissing…' : 'Dismiss alert'}
         </motion.button>
