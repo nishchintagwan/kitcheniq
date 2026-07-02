@@ -27,7 +27,10 @@ export default function SplashScreen() {
 
     setIsLoading(true)
     try {
-      const { error: supabaseError } = await supabase.auth.signInWithOtp({ email })
+      const { error: supabaseError } = await supabase.auth.signInWithOtp({
+        email,
+        options: { emailRedirectTo: window.location.origin },
+      })
       if (supabaseError) {
         setError('Something went wrong — try again')
         return
@@ -53,7 +56,8 @@ export default function SplashScreen() {
           width: '100%',
           height: '100%',
           objectFit: 'cover',
-          opacity: 0.8,
+          objectPosition: 'center 20%',
+          opacity: 1,
           pointerEvents: 'none',
         }}
       />
