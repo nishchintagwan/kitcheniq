@@ -112,7 +112,7 @@ export default function DashboardScreen() {
     let cancelled = false
     setIsLoading(true)
     async function load() {
-      await Promise.all([fetchRecipes(restaurantId), fetchIngredients(restaurantId)])
+      await Promise.all([fetchRecipes(restaurantId!), fetchIngredients(restaurantId!)])
       if (cancelled) return
       const { recipes: latest } = useRecipeStore.getState()
       await Promise.all(latest.map((r) => fetchRecipeIngredients(r.id)))
