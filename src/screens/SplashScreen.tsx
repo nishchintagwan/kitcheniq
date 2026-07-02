@@ -153,11 +153,11 @@ export default function SplashScreen() {
             marginTop: 32,
             background: 'none',
             border: 'none',
-            color: 'rgba(255,255,255,0.35)',
-            fontSize: 11,
+            color: '#FFFFFF',
+            fontSize: 14,
             cursor: 'pointer',
             fontFamily: 'inherit',
-            padding: 0,
+            padding: '12px 24px',
             alignSelf: 'center',
           }}
         >
