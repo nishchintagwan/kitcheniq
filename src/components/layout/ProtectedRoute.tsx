@@ -8,11 +8,6 @@ export default function ProtectedRoute({ children }: { children: ReactNode }) {
   const [authed, setAuthed] = useState(false)
 
   useEffect(() => {
-    if (localStorage.getItem('kitcheniq_dev') === '1') {
-      setAuthed(true)
-      setChecked(true)
-      return
-    }
     supabase.auth.getSession().then(({ data }) => {
       setAuthed(!!data.session)
       setChecked(true)

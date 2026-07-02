@@ -147,22 +147,6 @@ export default function SplashScreen() {
           Secure. Smart. Built for Indian kitchens.
         </div>
 
-        <button
-          onClick={() => { localStorage.setItem('kitcheniq_dev', '1'); navigate('/') }}
-          style={{
-            marginTop: 32,
-            background: 'none',
-            border: 'none',
-            color: '#FFFFFF',
-            fontSize: 14,
-            cursor: 'pointer',
-            fontFamily: 'inherit',
-            padding: '12px 24px',
-            alignSelf: 'center',
-          }}
-        >
-          dev
-        </button>
       </div>
     </div>
   )

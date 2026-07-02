@@ -64,8 +64,6 @@ const errorStyle: React.CSSProperties = {
 export default function RestaurantSetupScreen() {
   const navigate = useNavigate()
   const { setRestaurant } = useRestaurantStore()
-  const IS_DEV = localStorage.getItem('kitcheniq_dev') === '1'
-
   const [isSaving, setIsSaving] = useState(false)
   const [showFssai, setShowFssai] = useState(false)
   const [focusedField, setFocusedField] = useState<string | null>(null)
@@ -91,20 +89,6 @@ export default function RestaurantSetupScreen() {
   async function onSubmit(formData: FormData) {
     setIsSaving(true)
     try {
-      if (localStorage.getItem('kitcheniq_dev') === '1') {
-        setRestaurant({
-          id: 'dev-restaurant',
-          owner_id: 'dev-user',
-          name: formData.name,
-          city: formData.city,
-          cuisine_type: formData.cuisine_type as CuisineType,
-          fssai_number: formData.fssai_number || null,
-          created_at: new Date().toISOString(),
-        })
-        navigate('/dashboard')
-        return
-      }
-
       const { data: sessionData } = await supabase.auth.getSession()
       const userId = sessionData.session?.user?.id
       if (!userId) return
@@ -285,18 +269,9 @@ export default function RestaurantSetupScreen() {
               </div>
 
               <div style={{ paddingTop: 8 }}>
-                {IS_DEV ? (
-                  <Button type="button" fullWidth onClick={() => {
-                    setRestaurant({ id: 'dev-restaurant', owner_id: 'dev-user', name: 'Dev Restaurant', city: 'Delhi', cuisine_type: 'north-indian', fssai_number: null, created_at: new Date().toISOString() })
-                    navigate('/dashboard')
-                  }}>
-                    Let's go →
-                  </Button>
-                ) : (
-                  <Button type="submit" fullWidth>
-                    Let's go →
-                  </Button>
-                )}
+                <Button type="submit" fullWidth>
+                  Let's go →
+                </Button>
               </div>
             </div>
           </form>
