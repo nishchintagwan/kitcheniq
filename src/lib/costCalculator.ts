@@ -1,4 +1,4 @@
-import type { Unit, MarginResult, MarginStatus } from '../types'
+import type { Unit, MarginResult, MarginStatus, Recipe, RecipeIngredient, IngredientPriceHistory } from '../types'
 
 const BASE_UNIT_MULTIPLIERS: Record<Unit, number> = {
   kg:    1,
@@ -82,6 +82,54 @@ export function getSpikePercent(oldPrice: number, newPrice: number): number {
 
 export function isSpikeAlert(changePercent: number): boolean {
   return Math.abs(changePercent) >= 15
+}
+
+export async function computeMarginTrend(
+  recipe: Recipe,
+  recipeIngredients: RecipeIngredient[],
+  getPriceHistoryFn: (id: string, limit: number) => Promise<IngredientPriceHistory[]>
+): Promise<number[]> {
+  const today = new Date()
+  today.setHours(23, 59, 59, 999)
+  const days: Date[] = []
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(today)
+    d.setDate(d.getDate() - i)
+    days.push(d)
+  }
+
+  // Fetch history for all ingredients in parallel
+  const historyByIngredient: Record<string, IngredientPriceHistory[]> = {}
+  await Promise.all(
+    recipeIngredients.map(async (ri) => {
+      const hist = await getPriceHistoryFn(ri.ingredient_id, 14)
+      historyByIngredient[ri.ingredient_id] = hist
+    })
+  )
+
+  return days.map((dayEnd) => {
+    const ingredientInputs = recipeIngredients.map((ri) => {
+      const history = historyByIngredient[ri.ingredient_id] ?? []
+      // Find most recent record on or before dayEnd
+      const hit = history
+        .filter((h) => new Date(h.recorded_at) <= dayEnd)
+        .sort((a, b) => new Date(b.recorded_at).getTime() - new Date(a.recorded_at).getTime())[0]
+      return {
+        quantity: ri.quantity,
+        unit: ri.unit,
+        pricePerKg: hit ? hit.price_per_kg : (history[0]?.price_per_kg ?? 0),
+      }
+    })
+
+    const result = calculateMargin({
+      ingredients: ingredientInputs,
+      sellingPrice: recipe.selling_price,
+      serves: recipe.serves,
+      wastagePercent: recipe.wastage_percent,
+      overheadPercent: recipe.overhead_percent,
+    })
+    return result.marginPercent
+  })
 }
 
 /*
