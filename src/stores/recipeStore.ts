@@ -13,6 +13,8 @@ interface RecipeStore {
   fetchRecipes: (restaurantId: string) => Promise<void>
   fetchRecipeIngredients: (recipeId: string) => Promise<void>
   getMarginForRecipe: (recipeId: string) => MarginResult | null
+  getEstimatedMonthlySales: () => { sales: number; cogs: number }
+  getAggregateMargin: () => number
   updateRecipePrice: (recipeId: string, newPrice: number) => void
   clearRecipes: () => void
 }
@@ -37,6 +39,37 @@ export const useRecipeStore = create<RecipeStore>()(
         set((state) => ({
           recipeIngredients: { ...state.recipeIngredients, [recipeId]: items },
         }))
+      },
+
+      getEstimatedMonthlySales: () => {
+        const { recipes, recipeIngredients } = get()
+        const { ingredients } = useIngredientStore.getState()
+        let totalSales = 0
+        let totalCost = 0
+        recipes.forEach((recipe) => {
+          const items = recipeIngredients[recipe.id] || []
+          if (items.length === 0) return
+          const ingredientInputs = items.map((ri) => {
+            const ing = ingredients.find((i) => i.id === ri.ingredient_id)
+            return { quantity: ri.quantity, unit: ri.unit, pricePerKg: ing?.price_per_kg ?? 0 }
+          })
+          const result = calculateMargin({
+            ingredients: ingredientInputs,
+            sellingPrice: recipe.selling_price,
+            serves: recipe.serves,
+            wastagePercent: recipe.wastage_percent,
+            overheadPercent: recipe.overhead_percent,
+          })
+          totalSales += recipe.selling_price * 30
+          totalCost += result.totalCost * 30
+        })
+        return { sales: totalSales, cogs: totalCost }
+      },
+
+      getAggregateMargin: () => {
+        const { sales, cogs } = get().getEstimatedMonthlySales()
+        if (sales === 0) return 0
+        return Math.max(0, Math.min(100, ((sales - cogs) / sales) * 100))
       },
 
       updateRecipePrice: (recipeId, newPrice) =>
