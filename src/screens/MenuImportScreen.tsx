@@ -16,9 +16,7 @@ interface LocalDish extends ImportedDish {
 
 const PROCESSING_MESSAGES = ['Finding dishes...', 'Reading prices...', 'Almost done...']
 
-function makeId() {
-  return Math.random().toString(36).slice(2, 9)
-}
+function makeId() { return Math.random().toString(36).slice(2, 9) }
 
 function fileToBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -50,9 +48,7 @@ export default function MenuImportScreen() {
     return () => clearInterval(id)
   }, [phase])
 
-  function handleZoneTap() {
-    fileInputRef.current?.click()
-  }
+  function handleZoneTap() { fileInputRef.current?.click() }
 
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -69,7 +65,6 @@ export default function MenuImportScreen() {
 
     try {
       const base64 = await fileToBase64(file)
-
       const { data, error } = await supabase.functions.invoke('menu-import', {
         body: {
           imageBase64: base64,
@@ -80,10 +75,7 @@ export default function MenuImportScreen() {
         },
       })
 
-      if (error) {
-        setPhase('error')
-        return
-      }
+      if (error) { setPhase('error'); return }
 
       const raw: ImportedDish[] = Array.isArray(data?.dishes) ? data.dishes : []
       const trimmed = raw.slice(0, 100)
@@ -95,9 +87,7 @@ export default function MenuImportScreen() {
     }
   }
 
-  function removeDish(id: string) {
-    setDishes((prev) => prev.filter((d) => d._id !== id))
-  }
+  function removeDish(id: string) { setDishes((prev) => prev.filter((d) => d._id !== id)) }
 
   function updateDish(id: string, field: 'name' | 'selling_price', value: string) {
     setDishes((prev) =>
@@ -112,14 +102,7 @@ export default function MenuImportScreen() {
   function addDish() {
     setDishes((prev) => [
       ...prev,
-      {
-        _id: makeId(),
-        name: '',
-        category: 'Main Course',
-        selling_price: 0,
-        confidence: 1,
-        needs_review: false,
-      },
+      { _id: makeId(), name: '', category: 'Main Course', selling_price: 0, confidence: 1, needs_review: false },
     ])
   }
 
@@ -136,10 +119,7 @@ export default function MenuImportScreen() {
           category: category || 'Main Course',
           selling_price: selling_price ?? 0,
         }))
-
-      if (rows.length > 0) {
-        await supabase.from('recipes').insert(rows)
-      }
+      if (rows.length > 0) await supabase.from('recipes').insert(rows)
       navigate('/onboarding/ingredients')
     } finally {
       setIsSaving(false)
@@ -147,15 +127,12 @@ export default function MenuImportScreen() {
   }
 
   return (
-    <div style={{ backgroundColor: '#FFFAF5', minHeight: '100vh' }}>
-      <GlacierHeader
-        title="Import your menu"
-        subtitle="Take a photo of your menu — AI will read it"
-      />
+    <div style={{ backgroundColor: '#0C111B', minHeight: '100vh' }}>
+      <GlacierHeader title="Import your menu" subtitle="Take a photo — AI will read it" />
 
-      <div style={{ padding: '24px 16px 0' }}>
+      <div style={{ padding: '24px 16px 48px' }}>
 
-        {/* ── State 1: Upload ── */}
+        {/* Upload */}
         {phase === 'upload' && (
           <>
             <div
@@ -166,25 +143,23 @@ export default function MenuImportScreen() {
               style={{
                 width: '100%',
                 height: 180,
-                borderRadius: 14,
-                border: '1.5px dashed #EDE8F5',
+                borderRadius: 16,
+                border: '1px dashed rgba(255,255,255,0.2)',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: 8,
                 cursor: 'pointer',
-                backgroundColor: '#FFFFFF',
+                backgroundColor: '#161D2B',
                 boxSizing: 'border-box',
               }}
             >
-              <Camera size={32} strokeWidth={1.5} color="#7C3AED" />
-              <p style={{ color: '#1A1A1A', fontSize: 13, margin: 0, textAlign: 'center' }}>
+              <Camera size={32} strokeWidth={1.5} color="#3FC6F0" />
+              <p style={{ color: '#F4F6FA', fontSize: 13, margin: 0, textAlign: 'center' }}>
                 Take a photo of your menu
               </p>
-              <p style={{ color: '#888888', fontSize: 11, margin: 0 }}>
-                or upload a file
-              </p>
+              <p style={{ color: '#9AA4B8', fontSize: 11, margin: 0 }}>or upload a file</p>
             </div>
 
             <input
@@ -203,7 +178,7 @@ export default function MenuImportScreen() {
           </>
         )}
 
-        {/* ── State 2: Processing ── */}
+        {/* Processing */}
         {phase === 'processing' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             {preview && (
@@ -215,58 +190,43 @@ export default function MenuImportScreen() {
                   maxHeight: 220,
                   objectFit: 'cover',
                   borderRadius: 14,
-                  border: '0.5px solid #EDE8F5',
+                  border: '1px solid rgba(255,255,255,0.08)',
                 }}
               />
             )}
-
             <Skeleton height={64} radius={14} />
             <Skeleton height={48} radius={10} />
             <Skeleton height={48} radius={10} />
-
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                justifyContent: 'center',
-                marginTop: 8,
-              }}
-            >
-              <Sparkles
-                size={14}
-                strokeWidth={1.5}
-                color="#7C3AED"
-                style={{ animation: 'breathe 2s ease-in-out infinite' }}
-              />
-              <span style={{ color: '#7C3AED', fontSize: 13 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center', marginTop: 8 }}>
+              <Sparkles size={14} strokeWidth={1.5} color="#3FC6F0" />
+              <span style={{ color: '#3FC6F0', fontSize: 13 }}>
                 {PROCESSING_MESSAGES[msgIndex]}
               </span>
             </div>
           </div>
         )}
 
-        {/* ── State 3: Review ── */}
+        {/* Review */}
         {phase === 'review' && (
           <>
-            <p style={{ fontSize: 14, fontWeight: 600, color: '#1A1A1A', margin: '0 0 4px' }}>
+            <p style={{ fontSize: 14, fontWeight: 700, color: '#F4F6FA', margin: '0 0 4px' }}>
               We found {dishes.length} dish{dishes.length !== 1 ? 'es' : ''}. Does this look right?
             </p>
 
             {overLimit && (
-              <p style={{ color: '#F59E0B', fontSize: 11, margin: '0 0 12px' }}>
+              <p style={{ color: '#F0A93F', fontSize: 11, margin: '0 0 12px' }}>
                 Your menu had more than 100 dishes — showing the first 100.
               </p>
             )}
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 12, marginTop: overLimit ? 0 : 12 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 12, marginTop: 12 }}>
               {dishes.map((dish) => (
                 <div
                   key={dish._id}
                   style={{
-                    backgroundColor: '#FFFFFF',
+                    backgroundColor: '#161D2B',
                     borderRadius: 14,
-                    border: `0.5px solid ${dish.confidence < 0.7 ? '#FBB924' : '#EDE8F5'}`,
+                    border: `1px solid ${dish.confidence < 0.7 ? 'rgba(240,169,63,0.3)' : 'rgba(255,255,255,0.08)'}`,
                     padding: 12,
                     position: 'relative',
                   }}
@@ -275,31 +235,25 @@ export default function MenuImportScreen() {
                     onClick={() => removeDish(dish._id)}
                     aria-label="Remove dish"
                     style={{
-                      position: 'absolute',
-                      top: 10,
-                      right: 10,
-                      background: 'none',
-                      border: 'none',
-                      cursor: 'pointer',
-                      padding: 2,
-                      color: '#BBBBBB',
-                      lineHeight: 1,
+                      position: 'absolute', top: 10, right: 10,
+                      background: 'none', border: 'none', cursor: 'pointer', padding: 2, lineHeight: 1,
                     }}
                   >
-                    <X size={14} strokeWidth={1.5} />
+                    <X size={14} strokeWidth={1.5} color="#6B7588" />
                   </button>
 
                   {dish.confidence < 0.7 && (
                     <span
                       style={{
                         display: 'inline-block',
-                        backgroundColor: '#FFF8EC',
-                        color: '#F59E0B',
+                        backgroundColor: 'rgba(240,169,63,0.14)',
+                        color: '#F0A93F',
                         fontSize: 9,
-                        fontWeight: 600,
+                        fontWeight: 800,
                         borderRadius: 9999,
                         padding: '2px 8px',
                         marginBottom: 8,
+                        textTransform: 'uppercase',
                       }}
                     >
                       Please review
@@ -314,11 +268,11 @@ export default function MenuImportScreen() {
                       width: '100%',
                       boxSizing: 'border-box',
                       border: 'none',
-                      borderBottom: '0.5px solid #EDE8F5',
+                      borderBottom: '1px solid rgba(255,255,255,0.08)',
                       backgroundColor: 'transparent',
                       fontSize: 13,
                       fontWeight: 600,
-                      color: '#1A1A1A',
+                      color: '#F4F6FA',
                       outline: 'none',
                       fontFamily: 'inherit',
                       paddingRight: 24,
@@ -331,8 +285,8 @@ export default function MenuImportScreen() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <span
                       style={{
-                        backgroundColor: '#F5F0FA',
-                        color: '#7C3AED',
+                        backgroundColor: 'rgba(63,198,240,0.1)',
+                        color: '#3FC6F0',
                         fontSize: 10,
                         borderRadius: 9999,
                         padding: '2px 8px',
@@ -340,9 +294,8 @@ export default function MenuImportScreen() {
                     >
                       {dish.category}
                     </span>
-
                     <div style={{ display: 'flex', alignItems: 'center', gap: 2, marginLeft: 'auto' }}>
-                      <span style={{ color: '#888888', fontSize: 12 }}>₹</span>
+                      <span style={{ color: '#9AA4B8', fontSize: 12 }}>₹</span>
                       <input
                         type="number"
                         value={dish.selling_price || ''}
@@ -351,11 +304,11 @@ export default function MenuImportScreen() {
                         style={{
                           width: 60,
                           border: 'none',
-                          borderBottom: '0.5px solid #EDE8F5',
+                          borderBottom: '1px solid rgba(255,255,255,0.08)',
                           backgroundColor: 'transparent',
                           fontSize: 13,
                           fontWeight: 600,
-                          color: '#1A1A1A',
+                          color: '#F4F6FA',
                           outline: 'none',
                           fontFamily: 'inherit',
                           textAlign: 'right',
@@ -370,21 +323,11 @@ export default function MenuImportScreen() {
             <button
               onClick={addDish}
               style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 6,
-                background: 'none',
-                border: '0.5px dashed #EDE8F5',
-                borderRadius: 14,
-                padding: '10px 16px',
-                width: '100%',
-                cursor: 'pointer',
-                color: '#7C3AED',
-                fontSize: 13,
-                fontFamily: 'inherit',
-                marginBottom: 16,
-                boxSizing: 'border-box',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                background: 'none', border: '1px dashed rgba(255,255,255,0.2)', borderRadius: 14,
+                padding: '10px 16px', width: '100%', cursor: 'pointer',
+                color: '#3FC6F0', fontSize: 13, fontFamily: 'inherit',
+                marginBottom: 16, boxSizing: 'border-box',
               }}
             >
               <Plus size={14} strokeWidth={1.5} />
@@ -397,10 +340,10 @@ export default function MenuImportScreen() {
           </>
         )}
 
-        {/* ── Error state ── */}
+        {/* Error */}
         {phase === 'error' && (
           <div style={{ textAlign: 'center', padding: '40px 0' }}>
-            <p style={{ color: '#1A1A1A', fontSize: 13, marginBottom: 16 }}>
+            <p style={{ color: '#9AA4B8', fontSize: 13, marginBottom: 16 }}>
               We couldn't read the menu — try another photo
             </p>
             <Button

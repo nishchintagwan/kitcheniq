@@ -104,6 +104,22 @@ export async function getPriceHistory(
   }
 }
 
+export async function getLatestPriceDelta(ingredientId: string): Promise<number | null> {
+  try {
+    const { data } = await supabase
+      .from('ingredient_price_history')
+      .select('price_per_kg, recorded_at')
+      .eq('ingredient_id', ingredientId)
+      .order('recorded_at', { ascending: false })
+      .limit(2)
+    if (!data || data.length < 2) return null
+    const newer = (data[0] as { price_per_kg: number }).price_per_kg
+    const older = (data[1] as { price_per_kg: number }).price_per_kg
+    if (older === 0) return null
+    return ((newer - older) / older) * 100
+  } catch { return null }
+}
+
 export async function getMenuInsights(restaurantId: string): Promise<AiInsight[]> {
   try {
     const { data, error } = await supabase

@@ -6,7 +6,6 @@ import { supabase } from '../lib/supabase'
 import { useRestaurantStore } from '../stores/restaurantStore'
 import { useRecipeStore } from '../stores/recipeStore'
 import { getMenuInsights, dismissInsight, applyReprice } from '../lib/queries'
-import GlacierHeader from '../components/ui/GlacierHeader'
 import Skeleton from '../components/ui/Skeleton'
 import BottomNav from '../components/ui/BottomNav'
 import type { AiInsight } from '../types'
@@ -139,9 +138,39 @@ export default function InsightsScreen() {
 
   return (
     <div style={{ backgroundColor: '#0C111B', minHeight: '100vh' }}>
-      <GlacierHeader title="AI Insights" subtitle="Updated weekly" />
 
-      <div style={{ padding: '16px 16px 96px' }}>
+      {/* Full-bleed hero — covers the header area, edge-to-edge */}
+      <div style={{ position: 'relative', overflow: 'hidden', marginBottom: 16 }}>
+        <img
+          src="/ai-images/insights-hero.png"
+          alt="AI Insights"
+          style={{ width: '100%', display: 'block', objectFit: 'cover', maxHeight: 260 }}
+          onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
+        />
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: 'linear-gradient(to bottom, rgba(12,17,27,0.55) 0%, transparent 40%, transparent 50%, rgba(12,17,27,0.92) 100%)',
+        }} />
+        {/* Page title — top left */}
+        <div style={{ position: 'absolute', top: 16, left: 16 }}>
+          <p style={{ fontSize: 21, fontWeight: 800, color: '#F4F6FA', margin: 0, letterSpacing: '-0.4px' }}>AI Insights</p>
+          <p style={{ fontSize: 11, color: 'rgba(244,246,250,0.6)', margin: '2px 0 0' }}>Updated weekly</p>
+        </div>
+        {/* AI badge + tagline — bottom left */}
+        <div style={{ position: 'absolute', bottom: 16, left: 16, right: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+            <Sparkles size={13} strokeWidth={1.5} color="#3FC6F0" />
+            <span style={{ fontSize: 9, color: '#3FC6F0', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+              AI Analysis
+            </span>
+          </div>
+          <p style={{ fontSize: 16, fontWeight: 800, color: '#F4F6FA', margin: 0, letterSpacing: '-0.3px' }}>
+            Menu intelligence,<br />always on.
+          </p>
+        </div>
+      </div>
+
+      <div style={{ padding: '0 16px 96px' }}>
 
         {isLoading ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>

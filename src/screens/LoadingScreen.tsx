@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
-import { getRestaurant } from '../lib/queries'
+import { useRestaurantStore } from '../stores/restaurantStore'
 
 export default function LoadingScreen() {
   const navigate = useNavigate()
@@ -10,7 +10,8 @@ export default function LoadingScreen() {
     async function redirect() {
       const { data } = await supabase.auth.getSession()
       if (!data.session) return
-      const restaurant = await getRestaurant(data.session.user.id)
+      await useRestaurantStore.getState().fetchRestaurant(data.session.user.id)
+      const { restaurant } = useRestaurantStore.getState()
       navigate(restaurant ? '/dashboard' : '/setup', { replace: true })
     }
     redirect()

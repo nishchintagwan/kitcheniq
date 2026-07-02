@@ -1,3 +1,6 @@
+# Supabase CLI temp files (project link metadata — not secrets but noisy)
+supabase/.temp/
+
 # Logs
 logs
 *.log

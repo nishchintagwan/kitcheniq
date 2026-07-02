@@ -87,8 +87,18 @@ export const useRecipeStore = create<RecipeStore>()(
       getMarginForRecipe: (recipeId) => {
         const { recipes, recipeIngredients } = get()
         const recipe = recipes.find((r) => r.id === recipeId)
+        if (!recipe) return null
+
         const items = recipeIngredients[recipeId]
-        if (!recipe || !items || items.length === 0) return null
+        // undefined = not yet fetched → hide while loading
+        if (items === undefined) return null
+        // [] = fetched but no ingredients added yet → show with 0% margin
+        if (items.length === 0) {
+          return {
+            rawCost: 0, wastageCost: 0, overheadCost: 0, totalCost: 0,
+            marginPercent: 0, profitPerDish: 0, status: 'critical' as const,
+          }
+        }
 
         // Always read from ingredientStore.getState() — never cache here
         const { ingredients } = useIngredientStore.getState()

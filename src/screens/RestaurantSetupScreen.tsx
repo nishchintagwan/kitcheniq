@@ -31,30 +31,32 @@ const cuisines: { label: string; value: CuisineType }[] = [
   { label: 'Other',         value: 'other'         },
 ]
 
-const inputStyle = {
+const darkInput: React.CSSProperties = {
   width: '100%',
-  boxSizing: 'border-box' as const,
-  backgroundColor: '#FFFAF5',
-  border: '0.5px solid #EDE8F5',
-  borderRadius: 10,
-  padding: '12px 16px',
+  boxSizing: 'border-box',
+  backgroundColor: '#1B2436',
+  border: '1px solid rgba(255,255,255,0.14)',
+  borderRadius: 12,
+  padding: '12px 14px',
   fontSize: 13,
-  color: '#1A1A1A',
+  color: '#F4F6FA',
   fontFamily: 'inherit',
   outline: 'none',
-  appearance: 'none' as const,
+  appearance: 'none',
 }
 
-const labelStyle = {
-  display: 'block' as const,
-  fontSize: 11,
-  fontWeight: 500,
-  color: '#888888',
+const labelStyle: React.CSSProperties = {
+  display: 'block',
+  fontSize: 9,
+  fontWeight: 800,
+  color: '#6B7588',
+  textTransform: 'uppercase',
+  letterSpacing: '0.06em',
   marginBottom: 6,
 }
 
-const errorStyle = {
-  color: '#FF505F',
+const errorStyle: React.CSSProperties = {
+  color: '#F0596B',
   fontSize: 11,
   marginTop: 4,
 }
@@ -63,17 +65,19 @@ export default function RestaurantSetupScreen() {
   const navigate = useNavigate()
   const { setRestaurant } = useRestaurantStore()
 
-  const [isSaving, setIsSaving]       = useState(false)
-  const [showFssai, setShowFssai]     = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+  const [showFssai, setShowFssai] = useState(false)
   const [focusedField, setFocusedField] = useState<string | null>(null)
+  const [selectedCity, setSelectedCity] = useState('')
+  const [selectedCuisine, setSelectedCuisine] = useState('')
 
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm<FormData>({ resolver: zodResolver(schema) })
 
-  // On mount: if user already has a restaurant, skip to dashboard
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data }) => {
       const userId = data.session?.user?.id
@@ -111,32 +115,38 @@ export default function RestaurantSetupScreen() {
     }
   }
 
-  function focusStyle(field: string) {
-    return focusedField === field
-      ? { ...inputStyle, border: '0.5px solid #7C3AED' }
-      : inputStyle
+  function focusedInput(field: string): React.CSSProperties {
+    return { ...darkInput, border: `1px solid ${focusedField === field ? '#3FC6F0' : 'rgba(255,255,255,0.14)'}` }
+  }
+
+  function selectCity(city: string) {
+    setSelectedCity(city)
+    setValue('city', city, { shouldValidate: true })
+  }
+
+  function selectCuisine(value: CuisineType) {
+    setSelectedCuisine(value)
+    setValue('cuisine_type', value, { shouldValidate: true })
   }
 
   return (
-    <div style={{ backgroundColor: '#FFFAF5', minHeight: '100vh' }}>
-      <GlacierHeader
-        title="Set up your restaurant"
-        subtitle="Takes 30 seconds"
-      />
+    <div style={{ backgroundColor: '#0C111B', minHeight: '100vh' }}>
+      <GlacierHeader title="Set up your restaurant" subtitle="Takes 30 seconds" />
 
-      <div style={{ padding: '24px 16px 0' }}>
+      {/* Hidden inputs for RHF registration */}
+      <input type="hidden" {...register('city')} />
+      <input type="hidden" {...register('cuisine_type')} />
+
+      <div style={{ padding: '24px 16px 48px' }}>
         {isSaving ? (
-          /* Skeleton shown while save request is in flight */
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            <Skeleton height={48} radius={10} />
-            <Skeleton height={48} radius={10} />
-            <Skeleton height={48} radius={10} />
-            <Skeleton height={48} radius={10} />
+            {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} height={48} radius={12} />)}
           </div>
         ) : (
           <form onSubmit={handleSubmit(onSubmit)} noValidate>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              {/* Field 1: Restaurant name */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+
+              {/* Restaurant name */}
               <div>
                 <label style={labelStyle}>Restaurant name</label>
                 <input
@@ -144,54 +154,74 @@ export default function RestaurantSetupScreen() {
                   placeholder="e.g. Sharma's Kitchen"
                   onFocus={() => setFocusedField('name')}
                   onBlur={() => setFocusedField(null)}
-                  style={focusStyle('name')}
+                  style={focusedInput('name')}
                 />
-                {errors.name && (
-                  <p style={errorStyle}>{errors.name.message}</p>
-                )}
+                {errors.name && <p style={errorStyle}>{errors.name.message}</p>}
               </div>
 
-              {/* Field 2: City */}
+              {/* City chips */}
               <div>
                 <label style={labelStyle}>City</label>
-                <select
-                  {...register('city')}
-                  onFocus={() => setFocusedField('city')}
-                  onBlur={() => setFocusedField(null)}
-                  style={focusStyle('city')}
-                  defaultValue=""
-                >
-                  <option value="" disabled>Select city</option>
-                  {cities.map((c) => (
-                    <option key={c} value={c}>{c}</option>
-                  ))}
-                </select>
-                {errors.city && (
-                  <p style={errorStyle}>{errors.city.message}</p>
-                )}
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                  {cities.map((city) => {
+                    const active = selectedCity === city
+                    return (
+                      <button
+                        key={city}
+                        type="button"
+                        onClick={() => selectCity(city)}
+                        style={{
+                          backgroundColor: active ? '#3FC6F0' : '#1B2436',
+                          color: active ? '#04212E' : '#9AA4B8',
+                          border: active ? 'none' : '1px solid rgba(255,255,255,0.14)',
+                          borderRadius: 9999,
+                          padding: '7px 14px',
+                          fontSize: 12,
+                          fontFamily: 'inherit',
+                          cursor: 'pointer',
+                          fontWeight: active ? 700 : 400,
+                        }}
+                      >
+                        {city}
+                      </button>
+                    )
+                  })}
+                </div>
+                {errors.city && <p style={errorStyle}>{errors.city.message}</p>}
               </div>
 
-              {/* Field 3: Cuisine type */}
+              {/* Cuisine type chips */}
               <div>
                 <label style={labelStyle}>Cuisine type</label>
-                <select
-                  {...register('cuisine_type')}
-                  onFocus={() => setFocusedField('cuisine_type')}
-                  onBlur={() => setFocusedField(null)}
-                  style={focusStyle('cuisine_type')}
-                  defaultValue=""
-                >
-                  <option value="" disabled>Select cuisine</option>
-                  {cuisines.map((c) => (
-                    <option key={c.value} value={c.value}>{c.label}</option>
-                  ))}
-                </select>
-                {errors.cuisine_type && (
-                  <p style={errorStyle}>{errors.cuisine_type.message}</p>
-                )}
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                  {cuisines.map((c) => {
+                    const active = selectedCuisine === c.value
+                    return (
+                      <button
+                        key={c.value}
+                        type="button"
+                        onClick={() => selectCuisine(c.value)}
+                        style={{
+                          backgroundColor: active ? '#3FC6F0' : '#1B2436',
+                          color: active ? '#04212E' : '#9AA4B8',
+                          border: active ? 'none' : '1px solid rgba(255,255,255,0.14)',
+                          borderRadius: 9999,
+                          padding: '7px 14px',
+                          fontSize: 12,
+                          fontFamily: 'inherit',
+                          cursor: 'pointer',
+                          fontWeight: active ? 700 : 400,
+                        }}
+                      >
+                        {c.label}
+                      </button>
+                    )
+                  })}
+                </div>
+                {errors.cuisine_type && <p style={errorStyle}>{errors.cuisine_type.message}</p>}
               </div>
 
-              {/* FSSAI — collapsible, hidden behind a link */}
+              {/* FSSAI — collapsible */}
               <div>
                 {!showFssai ? (
                   <button
@@ -201,7 +231,7 @@ export default function RestaurantSetupScreen() {
                       background: 'none',
                       border: 'none',
                       padding: 0,
-                      color: '#7C3AED',
+                      color: '#3FC6F0',
                       fontSize: 12,
                       cursor: 'pointer',
                       fontFamily: 'inherit',
@@ -217,7 +247,7 @@ export default function RestaurantSetupScreen() {
                       placeholder="14-digit FSSAI licence number"
                       onFocus={() => setFocusedField('fssai')}
                       onBlur={() => setFocusedField(null)}
-                      style={focusStyle('fssai')}
+                      style={focusedInput('fssai')}
                     />
                     <button
                       type="button"
@@ -226,7 +256,7 @@ export default function RestaurantSetupScreen() {
                         background: 'none',
                         border: 'none',
                         padding: '6px 0 0',
-                        color: '#888888',
+                        color: '#6B7588',
                         fontSize: 11,
                         cursor: 'pointer',
                         fontFamily: 'inherit',
@@ -239,7 +269,6 @@ export default function RestaurantSetupScreen() {
                 )}
               </div>
 
-              {/* Submit */}
               <div style={{ paddingTop: 8 }}>
                 <Button type="submit" fullWidth>
                   Let's go →

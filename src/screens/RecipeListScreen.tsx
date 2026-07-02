@@ -253,7 +253,7 @@ export default function RecipeListScreen() {
         onClick={() => navigate('/recipes/new')}
         aria-label="Add dish"
         style={{
-          position: 'fixed', bottom: 90, right: 20,
+          position: 'fixed', bottom: 90, right: 'max(20px, calc((100vw - 430px) / 2 + 20px))',
           width: 52, height: 52, borderRadius: '50%',
           backgroundColor: '#3FC6F0',
           border: 'none', cursor: 'pointer',

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, MoreVertical } from 'lucide-react'
 import { supabase } from '../lib/supabase'
@@ -23,29 +23,6 @@ const STATUS_COLOR: Record<MarginStatus, string> = {
   critical: '#F0596B',
 }
 
-function useCountUpFloat(target: number): number {
-  const [value, setValue] = useState(0)
-  const prevTarget = useRef(-1)
-  useEffect(() => {
-    if (prevTarget.current === target) return
-    prevTarget.current = target
-    setValue(0)
-    if (target === 0) return
-    const DURATION = 800
-    const start = performance.now()
-    let raf: number
-    function tick(now: number) {
-      const t = Math.min((now - start) / DURATION, 1)
-      const eased = 1 - Math.pow(1 - t, 3)
-      setValue(Math.round(target * eased * 10) / 10)
-      if (t < 1) raf = requestAnimationFrame(tick)
-      else setValue(target)
-    }
-    raf = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(raf)
-  }, [target])
-  return value
-}
 
 export default function RecipeDetailScreen() {
   const { id } = useParams<{ id: string }>()
@@ -81,8 +58,6 @@ export default function RecipeDetailScreen() {
     if (!id) return null
     return useRecipeStore.getState().getMarginForRecipe(id)
   }, [id, recipeIngredients, ingredients])
-
-  const animatedMargin = useCountUpFloat(liveMargin?.marginPercent ?? 0)
 
   const ingredientRows = useMemo(() => {
     if (!recipe) return []
@@ -206,7 +181,7 @@ export default function RecipeDetailScreen() {
                 Margin
               </p>
               <p style={{ fontSize: 42, fontWeight: 800, color: statusColor, margin: '0 0 2px', letterSpacing: '-1px', lineHeight: 1 }}>
-                {animatedMargin.toFixed(1)}%
+                {(liveMargin?.marginPercent ?? 0).toFixed(1)}%
               </p>
               <p style={{ fontSize: 11, color: '#36D399', margin: '0 0 10px' }}>+0.0% vs LW</p>
               <MarginBar percent={liveMargin?.marginPercent ?? 0} height={5} />

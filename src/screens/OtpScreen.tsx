@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowLeft } from 'lucide-react'
 import { supabase } from '../lib/supabase'
-import { getRestaurant } from '../lib/queries'
+import { useRestaurantStore } from '../stores/restaurantStore'
 import Button from '../components/ui/Button'
 
 export default function OtpScreen() {
@@ -77,7 +77,8 @@ export default function OtpScreen() {
 
       const userId = data.user?.id
       if (userId) {
-        const restaurant = await getRestaurant(userId)
+        await useRestaurantStore.getState().fetchRestaurant(userId)
+        const { restaurant } = useRestaurantStore.getState()
         navigate(restaurant ? '/dashboard' : '/setup', { replace: true })
       } else {
         navigate('/setup', { replace: true })
