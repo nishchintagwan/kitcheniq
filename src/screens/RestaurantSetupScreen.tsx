@@ -90,6 +90,20 @@ export default function RestaurantSetupScreen() {
   async function onSubmit(formData: FormData) {
     setIsSaving(true)
     try {
+      if (localStorage.getItem('kitcheniq_dev') === '1') {
+        setRestaurant({
+          id: 'dev-restaurant',
+          owner_id: 'dev-user',
+          name: formData.name,
+          city: formData.city,
+          cuisine_type: formData.cuisine_type as CuisineType,
+          fssai_number: formData.fssai_number || null,
+          created_at: new Date().toISOString(),
+        })
+        navigate('/onboarding/import')
+        return
+      }
+
       const { data: sessionData } = await supabase.auth.getSession()
       const userId = sessionData.session?.user?.id
       if (!userId) return
