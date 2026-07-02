@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Shield } from 'lucide-react'
 import { z } from 'zod'
 import { supabase } from '../lib/supabase'
 import Logo from '../components/ui/Logo'
@@ -20,7 +21,7 @@ export default function SplashScreen() {
 
     const result = emailSchema.safeParse(email)
     if (!result.success) {
-      setError('Enter a valid email')
+      setError('Enter a valid email address')
       return
     }
 
@@ -40,160 +41,107 @@ export default function SplashScreen() {
   }
 
   return (
-    <div
-      style={{
-        position: 'relative',
-        minHeight: '100vh',
-        backgroundColor: '#0D0A14',
-        overflow: 'hidden',
-      }}
-    >
-      {/* Primary saffron glow — top-right */}
-      <div
+    <div style={{ position: 'relative', minHeight: '100vh', overflow: 'hidden', backgroundColor: '#0C111B' }}>
+
+      {/* Hero kitchen background image */}
+      <img
+        src="/ai-images/login-kitchen-bg.png"
+        alt=""
         style={{
           position: 'absolute',
-          top: -100,
-          right: -80,
-          width: 400,
-          height: 400,
-          borderRadius: '50%',
-          background:
-            'radial-gradient(circle, rgba(232,99,10,0.28), rgba(232,99,10,0.10), transparent)',
-          animation: 'breathe 4s ease-in-out infinite',
+          inset: 0,
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          opacity: 0.8,
           pointerEvents: 'none',
         }}
       />
 
-      {/* Secondary saffron halo — top-right, softer */}
+      {/* Gradient overlay — fades image into dark at bottom */}
       <div
         style={{
           position: 'absolute',
-          top: -40,
-          right: -20,
-          width: 240,
-          height: 240,
-          borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(245,166,35,0.14), transparent)',
+          inset: 0,
+          background: 'linear-gradient(to bottom, rgba(12,17,27,0.12) 0%, rgba(12,17,27,0.82) 52%, #0C111B 100%)',
           pointerEvents: 'none',
         }}
       />
 
-      {/* Purple counter-glow — bottom-left */}
+      {/* Content layer */}
       <div
         style={{
-          position: 'absolute',
-          bottom: -60,
-          left: -40,
-          width: 280,
-          height: 280,
-          borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(124,58,237,0.15), transparent)',
-          pointerEvents: 'none',
-        }}
-      />
-
-      {/* Main content — vertically centered */}
-      <div
-        style={{
+          position: 'relative',
+          padding: '360px 24px 48px',
           display: 'flex',
           flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
           minHeight: '100vh',
-          padding: '24px 24px 80px',
-          position: 'relative',
+          boxSizing: 'border-box',
         }}
       >
-        {/* Logo with breathe */}
-        <div style={{ animation: 'breathe 4s ease-in-out infinite' }}>
-          <Logo />
-        </div>
+        <Logo />
 
-        {/* App name */}
-        <h1
-          style={{
-            color: '#FFFFFF',
-            fontSize: 28,
-            fontWeight: 700,
-            letterSpacing: '-0.5px',
-            margin: '16px 0 0',
-            textAlign: 'center',
-          }}
-        >
-          KitchenIQ
-        </h1>
-
-        {/* Tagline */}
         <p
           style={{
-            color: 'rgba(255,255,255,0.50)',
-            fontSize: 12,
-            margin: '8px 0 40px',
-            textAlign: 'center',
+            color: '#9AA4B8',
+            fontSize: 13,
+            lineHeight: 1.5,
+            margin: '10px 0 32px',
           }}
         >
-          Your restaurant's AI brain
+          AI-Powered Margin Intelligence for Indian Restaurants
         </p>
 
-        {/* Email form */}
-        <form onSubmit={handleSubmit} style={{ width: '100%', maxWidth: 360 }}>
+        <form onSubmit={handleSubmit} noValidate>
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             onFocus={() => setFocused(true)}
             onBlur={() => setFocused(false)}
-            placeholder="Enter your email"
+            placeholder="your@email.com"
             autoComplete="email"
             style={{
               width: '100%',
               boxSizing: 'border-box',
-              backgroundColor: 'rgba(255,255,255,0.08)',
-              border: `1px solid ${focused ? 'rgba(124,58,237,0.6)' : 'rgba(255,255,255,0.12)'}`,
-              color: '#FFFFFF',
-              borderRadius: 10,
-              padding: '12px 16px',
-              fontSize: 13,
+              backgroundColor: '#1B2436',
+              border: `1px solid ${focused ? '#3FC6F0' : 'rgba(255,255,255,0.14)'}`,
+              borderRadius: 12,
+              padding: '13px 16px',
+              fontSize: 14,
+              color: '#F4F6FA',
               outline: 'none',
               fontFamily: 'inherit',
+              transition: 'border-color 0.15s',
             }}
           />
 
           {error && (
-            <p
-              style={{
-                color: '#FF505F',
-                fontSize: 11,
-                margin: '6px 0 0',
-              }}
-            >
+            <p style={{ color: '#F0596B', fontSize: 11, margin: '6px 0 0' }}>
               {error}
             </p>
           )}
 
           <div style={{ marginTop: 12 }}>
             <Button type="submit" fullWidth disabled={isLoading}>
-              {isLoading ? 'Sending...' : 'Get started →'}
+              {isLoading ? 'Sending...' : 'Log In'}
             </Button>
           </div>
         </form>
-      </div>
 
-      {/* Beta badge — bottom-right corner */}
-      <div
-        style={{
-          position: 'absolute',
-          bottom: 20,
-          right: 20,
-          backgroundColor: 'rgba(124,58,237,0.2)',
-          color: '#A78BFA',
-          fontSize: 9,
-          borderRadius: 9999,
-          padding: '4px 8px',
-          pointerEvents: 'none',
-        }}
-      >
-        Beta — Free
+        <div
+          style={{
+            marginTop: 28,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            color: '#6B7588',
+            fontSize: 11,
+          }}
+        >
+          <Shield size={14} strokeWidth={1.5} color="#6B7588" />
+          Secure. Smart. Built for Indian kitchens.
+        </div>
       </div>
     </div>
   )

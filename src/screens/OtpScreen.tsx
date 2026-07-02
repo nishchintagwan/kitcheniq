@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { ArrowLeft } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { getRestaurant } from '../lib/queries'
-import GlacierHeader from '../components/ui/GlacierHeader'
 import Button from '../components/ui/Button'
 
 export default function OtpScreen() {
@@ -20,14 +20,10 @@ export default function OtpScreen() {
 
   const inputRefs = useRef<(HTMLInputElement | null)[]>([])
 
-  // Redirect immediately if no email in state
   useEffect(() => {
-    if (!email) {
-      navigate('/login', { replace: true })
-    }
+    if (!email) navigate('/login', { replace: true })
   }, [email, navigate])
 
-  // 60-second resend countdown, starts on mount
   useEffect(() => {
     if (countdown <= 0) return
     const id = setInterval(() => setCountdown((c) => c - 1), 1000)
@@ -35,19 +31,14 @@ export default function OtpScreen() {
   }, [countdown])
 
   function handleChange(index: number, value: string) {
-    // Strip non-digits, keep only last character (handles replace of existing digit)
     const digit = value.replace(/\D/g, '').slice(-1)
     const next = [...digits]
     next[index] = digit
     setDigits(next)
-    // Auto-advance to next box on digit entry
-    if (digit && index < 5) {
-      inputRefs.current[index + 1]?.focus()
-    }
+    if (digit && index < 5) inputRefs.current[index + 1]?.focus()
   }
 
   function handleKeyDown(index: number, e: React.KeyboardEvent<HTMLInputElement>) {
-    // Backspace on empty box → focus previous
     if (e.key === 'Backspace' && !digits[index] && index > 0) {
       inputRefs.current[index - 1]?.focus()
     }
@@ -60,8 +51,7 @@ export default function OtpScreen() {
     const next = [...digits]
     for (let i = 0; i < pasted.length; i++) next[i] = pasted[i]
     setDigits(next)
-    const lastFilled = Math.min(pasted.length - 1, 5)
-    inputRefs.current[lastFilled]?.focus()
+    inputRefs.current[Math.min(pasted.length - 1, 5)]?.focus()
   }
 
   async function handleVerify() {
@@ -79,13 +69,12 @@ export default function OtpScreen() {
       })
 
       if (verifyError) {
-        setError('Incorrect code')
+        setError('Incorrect code — please try again')
         setIsShaking(true)
         setTimeout(() => setIsShaking(false), 500)
         return
       }
 
-      // Check if restaurant exists → route to dashboard or setup
       const userId = data.user?.id
       if (userId) {
         const restaurant = await getRestaurant(userId)
@@ -108,26 +97,61 @@ export default function OtpScreen() {
       setError('')
       setCountdown(60)
     } catch {
-      // silently ignore — user can tap again
+      // silently ignore
     }
   }
 
   const token = digits.join('')
 
   return (
-    <div style={{ backgroundColor: '#FFFAF5', minHeight: '100vh' }}>
-      <GlacierHeader
-        title="Check your email"
-        subtitle="Enter the 6-digit code we sent you"
-        showBack
-      />
+    <div style={{ backgroundColor: '#0C111B', minHeight: '100vh' }}>
+      {/* Back row */}
+      <div style={{ padding: '16px 16px 0' }}>
+        <button
+          onClick={() => navigate('/login')}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            padding: 0,
+            color: 'rgba(255,255,255,0.4)',
+            fontSize: 11,
+            fontFamily: 'inherit',
+          }}
+        >
+          <ArrowLeft size={16} strokeWidth={1.5} color="rgba(255,255,255,0.4)" />
+          Back
+        </button>
+      </div>
 
-      <div style={{ padding: '24px 16px 0' }}>
-        {/* OTP digit row — animates shake on wrong code */}
+      <div style={{ padding: '40px 24px 0' }}>
+        <h1
+          style={{
+            color: '#F4F6FA',
+            fontSize: 28,
+            fontWeight: 800,
+            letterSpacing: '-0.5px',
+            margin: 0,
+          }}
+        >
+          Check your email
+        </h1>
+
+        <p style={{ color: '#9AA4B8', fontSize: 13, marginTop: 8, lineHeight: 1.5 }}>
+          We sent a 6-digit code to
+        </p>
+        <p style={{ color: '#3FC6F0', fontSize: 13, fontWeight: 600, margin: '2px 0 32px' }}>
+          {email}
+        </p>
+
+        {/* OTP digit row */}
         <motion.div
           animate={isShaking ? { x: [-8, 8, -8, 8, -4, 4, 0] } : { x: 0 }}
           transition={{ duration: 0.45, ease: 'easeInOut' }}
-          style={{ display: 'flex', gap: 8, justifyContent: 'center' }}
+          style={{ display: 'flex', gap: 10, justifyContent: 'center' }}
         >
           {digits.map((digit, i) => (
             <input
@@ -143,54 +167,61 @@ export default function OtpScreen() {
               onFocus={() => setFocusedIndex(i)}
               onBlur={() => setFocusedIndex(null)}
               style={{
-                width: 44,
-                height: 52,
-                backgroundColor: '#FFFFFF',
-                border: `0.5px solid ${focusedIndex === i ? '#7C3AED' : '#EDE8F5'}`,
-                borderRadius: 10,
+                width: 46,
+                height: 56,
+                backgroundColor: '#1B2436',
+                border: `1px solid ${focusedIndex === i ? '#3FC6F0' : 'rgba(255,255,255,0.14)'}`,
+                borderRadius: 12,
                 textAlign: 'center',
-                fontSize: 24,
-                fontWeight: 700,
-                color: '#1A1A1A',
+                fontSize: 22,
+                fontWeight: 800,
+                color: '#F4F6FA',
                 outline: 'none',
                 fontFamily: 'inherit',
                 boxSizing: 'border-box',
+                transition: 'border-color 0.15s',
               }}
             />
           ))}
         </motion.div>
 
-        {/* Inline error */}
         {error && (
-          <p
-            style={{
-              color: '#FF505F',
-              fontSize: 11,
-              marginTop: 10,
-              textAlign: 'center',
-            }}
-          >
+          <p style={{ color: '#F0596B', fontSize: 12, marginTop: 12, textAlign: 'center' }}>
             {error}
           </p>
         )}
 
-        {/* Verify button */}
-        <div style={{ marginTop: 24 }}>
-          <Button
-            fullWidth
-            disabled={isLoading || token.length < 6}
-            onClick={handleVerify}
-          >
-            {isLoading ? 'Verifying...' : 'Verify code'}
+        <div style={{ marginTop: 28 }}>
+          <Button fullWidth disabled={isLoading || token.length < 6} onClick={handleVerify}>
+            {isLoading ? 'Verifying...' : 'Verify'}
           </Button>
         </div>
 
-        {/* Resend with countdown */}
-        <div style={{ marginTop: 16, display: 'flex', justifyContent: 'center' }}>
-          <Button variant="ghost" disabled={countdown > 0} onClick={handleResend}>
+        <p
+          style={{
+            marginTop: 20,
+            fontSize: 12,
+            color: '#6B7588',
+            textAlign: 'center',
+          }}
+        >
+          Didn't receive it?{' '}
+          <button
+            onClick={handleResend}
+            disabled={countdown > 0}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: countdown > 0 ? 'default' : 'pointer',
+              color: countdown > 0 ? '#6B7588' : '#3FC6F0',
+              fontSize: 12,
+              fontFamily: 'inherit',
+              padding: 0,
+            }}
+          >
             {countdown > 0 ? `Resend in ${countdown}s` : 'Resend code'}
-          </Button>
-        </div>
+          </button>
+        </p>
       </div>
     </div>
   )
