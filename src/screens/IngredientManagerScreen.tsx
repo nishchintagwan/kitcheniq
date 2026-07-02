@@ -1,12 +1,12 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, Search, AlertTriangle, X } from 'lucide-react'
-import { motion } from 'framer-motion'
+import { Plus, Search, AlertTriangle } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { supabase } from '../lib/supabase'
 import { useRestaurantStore } from '../stores/restaurantStore'
 import { useIngredientStore } from '../stores/ingredientStore'
+import { getLatestPriceDelta } from '../lib/queries'
 import GlacierHeader from '../components/ui/GlacierHeader'
-import Card from '../components/ui/Card'
 import Skeleton from '../components/ui/Skeleton'
 import BottomNav from '../components/ui/BottomNav'
 import type { Unit } from '../types'
@@ -20,15 +20,21 @@ function isStale(dateString: string): boolean {
 
 function relativeTime(dateString: string): string {
   const diffMs = Date.now() - new Date(dateString).getTime()
-  const mins = Math.floor(diffMs / 60000)
-  const hours = Math.floor(mins / 60)
-  const days = Math.floor(hours / 24)
-  if (mins < 1) return 'just now'
-  if (mins < 60) return `${mins} min ago`
-  if (hours < 24) return `${hours}h ago`
+  const days = Math.floor(diffMs / 86400000)
+  if (days === 0) return 'today'
   if (days === 1) return '1 day ago'
   return `${days} days ago`
 }
+
+function firstLetter(name: string): string { return (name.charAt(0) || '?').toUpperCase() }
+
+const LETTER_COLORS = ['#3FC6F0', '#36D399', '#F0A93F', '#F0596B', '#A78BFA', '#FB7185']
+function letterColor(name: string): string {
+  const code = name.charCodeAt(0) || 65
+  return LETTER_COLORS[code % LETTER_COLORS.length]
+}
+
+type FilterTab = 'all' | 'stale'
 
 export default function IngredientManagerScreen() {
   const navigate = useNavigate()
@@ -38,24 +44,21 @@ export default function IngredientManagerScreen() {
   const [isLoading, setIsLoading] = useState(true)
   const [hasError, setHasError] = useState(false)
   const [search, setSearch] = useState('')
-  const [alertDismissed, setAlertDismissed] = useState(false)
+  const [activeTab, setActiveTab] = useState<FilterTab>('all')
   const [showNewForm, setShowNewForm] = useState(false)
   const [newName, setNewName] = useState('')
   const [newPrice, setNewPrice] = useState('')
   const [newUnit, setNewUnit] = useState<Unit>('kg')
   const [isSavingNew, setIsSavingNew] = useState(false)
   const [newFocused, setNewFocused] = useState<string | null>(null)
+  const [deltas, setDeltas] = useState<Record<string, number | null>>({})
+  const [deltasLoading, setDeltasLoading] = useState(true)
 
   async function loadData(restaurantId: string) {
-    setIsLoading(true)
-    setHasError(false)
-    try {
-      await fetchIngredients(restaurantId)
-    } catch {
-      setHasError(true)
-    } finally {
-      setIsLoading(false)
-    }
+    setIsLoading(true); setHasError(false)
+    try { await fetchIngredients(restaurantId) }
+    catch { setHasError(true) }
+    finally { setIsLoading(false) }
   }
 
   useEffect(() => {
@@ -63,28 +66,34 @@ export default function IngredientManagerScreen() {
     loadData(restaurant.id)
   }, [restaurant?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Sort stalest first (oldest last_updated first)
+  useEffect(() => {
+    if (isLoading || ingredients.length === 0) { setDeltasLoading(false); return }
+    setDeltasLoading(true)
+    Promise.all(ingredients.map(async (ing) => {
+      const delta = await getLatestPriceDelta(ing.id)
+      return [ing.id, delta] as [string, number | null]
+    })).then((results) => {
+      const map: Record<string, number | null> = {}
+      results.forEach(([id, delta]) => { map[id] = delta })
+      setDeltas(map)
+    }).finally(() => setDeltasLoading(false))
+  }, [isLoading, ingredients.length]) // eslint-disable-line react-hooks/exhaustive-deps
+
   const sorted = useMemo(
-    () => [...ingredients].sort(
-      (a, b) => new Date(a.last_updated).getTime() - new Date(b.last_updated).getTime()
-    ),
+    () => [...ingredients].sort((a, b) => new Date(a.last_updated).getTime() - new Date(b.last_updated).getTime()),
     [ingredients]
   )
+
+  const anyStale = useMemo(() => sorted.some((i) => isStale(i.last_updated)), [sorted])
+  const staleCount = useMemo(() => sorted.filter((i) => isStale(i.last_updated)).length, [sorted])
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
-    return q ? sorted.filter((i) => i.name.toLowerCase().includes(q)) : sorted
-  }, [sorted, search])
-
-  const anyStale = useMemo(() => sorted.some((i) => isStale(i.last_updated)), [sorted])
-
-  const mostRecentMs = useMemo(
-    () => ingredients.reduce((max, i) => Math.max(max, new Date(i.last_updated).getTime()), 0),
-    [ingredients]
-  )
-  const headerSubtitle = mostRecentMs > 0
-    ? `Last updated: ${relativeTime(new Date(mostRecentMs).toISOString())}`
-    : undefined
+    let list = sorted
+    if (activeTab === 'stale') list = list.filter((i) => isStale(i.last_updated))
+    if (q) list = list.filter((i) => i.name.toLowerCase().includes(q))
+    return list
+  }, [sorted, search, activeTab])
 
   async function handleAddNew() {
     const restaurantId = restaurant?.id
@@ -94,386 +103,191 @@ export default function IngredientManagerScreen() {
     setIsSavingNew(true)
     try {
       await supabase.from('ingredients').insert({
-        restaurant_id: restaurantId,
-        name: newName.trim(),
-        price_per_kg: price,
-        unit: newUnit,
-        last_updated: new Date().toISOString(),
+        restaurant_id: restaurantId, name: newName.trim(),
+        price_per_kg: price, unit: newUnit, last_updated: new Date().toISOString(),
       })
       await fetchIngredients(restaurantId)
-      setNewName('')
-      setNewPrice('')
-      setNewUnit('kg')
-      setShowNewForm(false)
-    } catch {
-      // silent
-    } finally {
-      setIsSavingNew(false)
-    }
+      setNewName(''); setNewPrice(''); setNewUnit('kg'); setShowNewForm(false)
+    } catch { /* silent */ } finally { setIsSavingNew(false) }
   }
 
-  const inputStyle = (focused: boolean): React.CSSProperties => ({
-    width: '100%',
-    boxSizing: 'border-box',
-    backgroundColor: '#FFFAF5',
-    border: `0.5px solid ${focused ? '#7C3AED' : '#EDE8F5'}`,
-    borderRadius: 10,
-    padding: '10px 12px',
-    fontSize: 13,
-    color: '#1A1A1A',
-    fontFamily: 'inherit',
-    outline: 'none',
+  const darkInput = (focused: boolean): React.CSSProperties => ({
+    width: '100%', boxSizing: 'border-box', backgroundColor: '#1B2436',
+    border: `1px solid ${focused ? '#3FC6F0' : 'rgba(255,255,255,0.14)'}`,
+    borderRadius: 10, padding: '10px 12px', fontSize: 13, color: '#F4F6FA',
+    fontFamily: 'inherit', outline: 'none',
   })
 
   return (
-    <div style={{ backgroundColor: '#FFFAF5', minHeight: '100vh' }}>
+    <div style={{ backgroundColor: '#0C111B', minHeight: '100vh' }}>
       <GlacierHeader
-        title="Ingredients"
-        subtitle={headerSubtitle}
+        title="Inventory"
         rightElement={
           <motion.button
             whileTap={{ scale: 0.88, opacity: 0.75 }}
             transition={{ type: 'spring', stiffness: 500, damping: 30 }}
             onClick={() => setShowNewForm((v) => !v)}
             aria-label="Add ingredient"
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              padding: 4,
-              lineHeight: 1,
-              display: 'flex',
-              alignItems: 'center',
-            }}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, lineHeight: 1, display: 'flex', alignItems: 'center' }}
           >
-            <Plus size={18} strokeWidth={1.5} color="#FFFFFF" />
+            <Plus size={18} strokeWidth={1.5} color={showNewForm ? '#3FC6F0' : '#9AA4B8'} />
           </motion.button>
         }
       />
 
-      <div style={{ padding: '16px 16px 96px' }}>
+      <div style={{ padding: '0 16px 96px' }}>
 
-        {/* ── Inline new ingredient form ── */}
-        {showNewForm && (
-          <div
-            style={{
-              backgroundColor: '#FFFFFF',
-              border: '0.5px solid #EDE8F5',
-              borderRadius: 14,
-              padding: 16,
-              marginBottom: 12,
-            }}
-          >
-            <p
-              style={{
-                fontSize: 10,
-                fontWeight: 600,
-                color: '#888888',
-                textTransform: 'uppercase',
-                letterSpacing: '0.05em',
-                margin: '0 0 12px',
-              }}
-            >
-              New ingredient
-            </p>
+        {/* Search */}
+        <div style={{ position: 'relative', marginBottom: 12 }}>
+          <Search size={14} strokeWidth={1.5} color="#6B7588" style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+          <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search ingredients..."
+            style={{ ...darkInput(false), padding: '10px 12px 10px 34px' }} />
+        </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <input
-                type="text"
-                placeholder="Ingredient name"
-                value={newName}
-                onChange={(e) => setNewName(e.target.value)}
-                onFocus={() => setNewFocused('name')}
-                onBlur={() => setNewFocused(null)}
-                style={inputStyle(newFocused === 'name')}
-              />
+        {/* Filter tabs */}
+        <div style={{ display: 'flex', gap: 4, marginBottom: 12 }}>
+          {(['all', 'stale'] as FilterTab[]).map((tab) => (
+            <button key={tab} onClick={() => setActiveTab(tab)} style={{
+              backgroundColor: activeTab === tab ? '#3FC6F0' : 'transparent',
+              color: activeTab === tab ? '#04212E' : '#6B7588',
+              border: 'none', borderRadius: 8, padding: '8px 16px', fontSize: 12,
+              fontWeight: activeTab === tab ? 700 : 400, fontFamily: 'inherit', cursor: 'pointer', textTransform: 'capitalize',
+            }}>
+              {tab === 'stale' ? `Stale${staleCount > 0 ? ` (${staleCount})` : ''}` : 'All'}
+            </button>
+          ))}
+        </div>
 
-              <div style={{ position: 'relative' }}>
-                <span
-                  style={{
-                    position: 'absolute',
-                    left: 12,
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    fontSize: 13,
-                    color: '#888888',
-                    pointerEvents: 'none',
-                    userSelect: 'none',
-                  }}
-                >
-                  ₹
-                </span>
-                <input
-                  type="number"
-                  inputMode="decimal"
-                  placeholder="Price per kg"
-                  value={newPrice}
-                  onChange={(e) => setNewPrice(e.target.value)}
-                  onFocus={() => setNewFocused('price')}
-                  onBlur={() => setNewFocused(null)}
-                  style={{ ...inputStyle(newFocused === 'price'), paddingLeft: 24 }}
-                />
-              </div>
-
-              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                {UNITS.map((u) => (
-                  <motion.button
-                    key={u}
-                    type="button"
-                    whileTap={{ scale: 0.94, opacity: 0.85 }}
-                    transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                    onClick={() => setNewUnit(u)}
-                    style={{
-                      backgroundColor: newUnit === u ? '#7C3AED' : '#F5F0FA',
-                      color: newUnit === u ? '#FFFFFF' : '#7C3AED',
-                      border: 'none',
-                      borderRadius: 9999,
-                      padding: '6px 12px',
-                      fontSize: 12,
-                      fontFamily: 'inherit',
-                      cursor: 'pointer',
-                      fontWeight: newUnit === u ? 600 : 400,
-                    }}
-                  >
-                    {u}
-                  </motion.button>
-                ))}
-              </div>
-
-              <div style={{ display: 'flex', gap: 10 }}>
-                <motion.button
-                  type="button"
-                  whileTap={{ scale: 0.96, opacity: 0.85 }}
-                  transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                  onClick={() => setShowNewForm(false)}
-                  style={{
-                    flex: 1,
-                    backgroundColor: 'transparent',
-                    color: '#1A1A1A',
-                    border: '0.5px solid #EDE8F5',
-                    borderRadius: 10,
-                    padding: 10,
-                    fontSize: 13,
-                    fontFamily: 'inherit',
-                    cursor: 'pointer',
-                  }}
-                >
-                  Cancel
-                </motion.button>
-                <motion.button
-                  type="button"
-                  whileTap={{ scale: 0.96, opacity: 0.85 }}
-                  transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                  onClick={handleAddNew}
-                  disabled={isSavingNew || !newName.trim() || !newPrice}
-                  style={{
-                    flex: 2,
-                    backgroundColor: '#7C3AED',
-                    color: '#FFFFFF',
-                    border: 'none',
-                    borderRadius: 10,
-                    padding: 10,
-                    fontSize: 13,
-                    fontWeight: 600,
-                    fontFamily: 'inherit',
-                    cursor: isSavingNew ? 'not-allowed' : 'pointer',
-                    opacity: !newName.trim() || !newPrice ? 0.5 : 1,
-                    boxShadow: '0 4px 16px rgba(124,58,237,0.3)',
-                  }}
-                >
-                  {isSavingNew ? 'Adding...' : 'Add ingredient'}
-                </motion.button>
-              </div>
+        {/* Stale banner */}
+        {anyStale && activeTab === 'all' && (
+          <div style={{ backgroundColor: 'rgba(240,169,63,0.14)', border: '1px solid rgba(240,169,63,0.3)', borderRadius: 10, padding: '10px 12px', marginBottom: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <AlertTriangle size={14} strokeWidth={1.5} color="#F0A93F" />
+              <span style={{ fontSize: 11, color: '#F0A93F', lineHeight: 1.4 }}>
+                {staleCount} ingredient price{staleCount !== 1 ? 's' : ''} may be outdated — last updated over 7 days ago
+              </span>
             </div>
           </div>
         )}
 
-        {/* ── Stale alert banner ── */}
-        {anyStale && !alertDismissed && (
-          <div
-            style={{
-              backgroundColor: '#FFF8EC',
-              border: '0.5px solid rgba(251,185,36,0.3)',
-              borderRadius: 10,
-              padding: '10px 12px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              marginBottom: 12,
-            }}
-          >
-            <AlertTriangle size={14} strokeWidth={1.5} color="#FBB924" />
-            <span style={{ flex: 1, fontSize: 12, color: '#1A1A1A', lineHeight: 1.4 }}>
-              Some prices haven't been updated in 7+ days
-            </span>
-            <motion.button
-              whileTap={{ scale: 0.88, opacity: 0.75 }}
-              transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-              onClick={() => setAlertDismissed(true)}
-              aria-label="Dismiss alert"
-              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, lineHeight: 1 }}
+        {/* Inline add form */}
+        <AnimatePresence>
+          {showNewForm && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }} transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+              style={{ overflow: 'hidden', marginBottom: 12 }}
             >
-              <X size={14} strokeWidth={1.5} color="#888888" />
-            </motion.button>
-          </div>
-        )}
+              <div style={{ backgroundColor: '#161D2B', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 14, padding: 14 }}>
+                <p style={{ fontSize: 9, fontWeight: 800, color: '#6B7588', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 12px' }}>New ingredient</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  <input type="text" placeholder="Ingredient name" value={newName} onChange={(e) => setNewName(e.target.value)}
+                    onFocus={() => setNewFocused('name')} onBlur={() => setNewFocused(null)}
+                    style={darkInput(newFocused === 'name')} />
+                  <div style={{ position: 'relative' }}>
+                    <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', fontSize: 13, color: '#6B7588', pointerEvents: 'none' }}>₹</span>
+                    <input type="number" inputMode="decimal" placeholder="Price per kg" value={newPrice} onChange={(e) => setNewPrice(e.target.value)}
+                      onFocus={() => setNewFocused('price')} onBlur={() => setNewFocused(null)}
+                      style={{ ...darkInput(newFocused === 'price'), paddingLeft: 24 }} />
+                  </div>
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                    {UNITS.map((u) => (
+                      <button key={u} type="button" onClick={() => setNewUnit(u)} style={{
+                        backgroundColor: newUnit === u ? '#3FC6F0' : '#1B2436', color: newUnit === u ? '#04212E' : '#9AA4B8',
+                        border: newUnit === u ? 'none' : '1px solid rgba(255,255,255,0.14)',
+                        borderRadius: 9999, padding: '5px 10px', fontSize: 11, fontFamily: 'inherit', cursor: 'pointer', fontWeight: newUnit === u ? 700 : 400,
+                      }}>{u}</button>
+                    ))}
+                  </div>
+                  <div style={{ display: 'flex', gap: 10 }}>
+                    <button type="button" onClick={() => setShowNewForm(false)} style={{
+                      flex: 1, backgroundColor: 'transparent', color: '#F4F6FA', border: '1px solid rgba(255,255,255,0.14)',
+                      borderRadius: 10, padding: 10, fontSize: 13, fontFamily: 'inherit', cursor: 'pointer',
+                    }}>Cancel</button>
+                    <button type="button" onClick={handleAddNew} disabled={isSavingNew || !newName.trim() || !newPrice} style={{
+                      flex: 2, backgroundColor: '#3FC6F0', color: '#04212E', border: 'none',
+                      borderRadius: 10, padding: 10, fontSize: 13, fontWeight: 700, fontFamily: 'inherit',
+                      cursor: isSavingNew ? 'not-allowed' : 'pointer', opacity: !newName.trim() || !newPrice ? 0.5 : 1,
+                      boxShadow: '0 4px 16px rgba(63,198,240,0.25)',
+                    }}>{isSavingNew ? 'Adding...' : 'Add ingredient'}</button>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-        {/* ── Search ── */}
-        <div style={{ position: 'relative', marginBottom: 12 }}>
-          <Search
-            size={14}
-            strokeWidth={1.5}
-            color="#888888"
-            style={{
-              position: 'absolute',
-              left: 12,
-              top: '50%',
-              transform: 'translateY(-50%)',
-              pointerEvents: 'none',
-            }}
-          />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search ingredients..."
-            style={{
-              width: '100%',
-              boxSizing: 'border-box',
-              backgroundColor: '#FFFFFF',
-              border: '0.5px solid #EDE8F5',
-              borderRadius: 10,
-              padding: '10px 12px 10px 34px',
-              fontSize: 13,
-              color: '#1A1A1A',
-              fontFamily: 'inherit',
-              outline: 'none',
-            }}
-          />
-        </div>
-
-        {/* ── Ingredient list ── */}
+        {/* Ingredient list */}
         {hasError ? (
-          <Card onClick={() => restaurant?.id && loadData(restaurant.id)}>
-            <p style={{ fontSize: 13, color: '#888888', textAlign: 'center', margin: 0 }}>
-              Something went wrong — tap to retry
-            </p>
-          </Card>
+          <div
+            style={{ backgroundColor: '#161D2B', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 14, padding: 16, textAlign: 'center', cursor: 'pointer' }}
+            onClick={() => restaurant?.id && loadData(restaurant.id)}
+          >
+            <p style={{ fontSize: 13, color: '#9AA4B8', margin: 0 }}>Something went wrong — tap to retry</p>
+          </div>
         ) : isLoading ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <Skeleton key={i} height={72} radius={14} />
-            ))}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {[1, 2, 3, 4, 5, 6].map((i) => <Skeleton key={i} height={72} radius={14} />)}
           </div>
         ) : filtered.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '48px 0' }}>
-            <p style={{ fontSize: 14, fontWeight: 600, color: '#1A1A1A', margin: '0 0 6px' }}>
+            <p style={{ fontSize: 14, fontWeight: 600, color: '#F4F6FA', margin: '0 0 6px' }}>
               {ingredients.length === 0 ? 'No ingredients yet' : 'No matches'}
             </p>
-            <p style={{ fontSize: 12, color: '#888888', margin: 0 }}>
-              {ingredients.length === 0
-                ? 'Tap + to add your first ingredient'
-                : 'Try a different search term'}
+            <p style={{ fontSize: 12, color: '#9AA4B8', margin: 0 }}>
+              {ingredients.length === 0 ? 'Tap + to add your first ingredient' : 'Try a different search term'}
             </p>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {filtered.map((ing) => {
               const stale = isStale(ing.last_updated)
+              const delta = deltas[ing.id]
+              const color = letterColor(ing.name)
               return (
-                <Card key={ing.id} onClick={() => navigate(`/ingredients/${ing.id}`)}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    {/* Stale dot */}
-                    <div
-                      style={{
-                        width: 8,
-                        height: 8,
-                        borderRadius: '50%',
-                        backgroundColor: stale ? '#FBB924' : '#00DC82',
-                        flexShrink: 0,
-                      }}
-                    />
-
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-                        <span
-                          style={{
-                            fontSize: 13,
-                            fontWeight: 600,
-                            color: '#1A1A1A',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap',
-                          }}
-                        >
-                          {ing.name}
-                        </span>
-                        <span
-                          style={{
-                            fontSize: 13,
-                            fontWeight: 700,
-                            color: '#1A1A1A',
-                            flexShrink: 0,
-                          }}
-                        >
-                          ₹{ing.price_per_kg}/{ing.unit}
-                        </span>
-                      </div>
-
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 3 }}>
-                        <span
-                          style={{
-                            fontSize: 11,
-                            color: stale ? '#FBB924' : '#888888',
-                          }}
-                        >
-                          {stale ? '⚠ ' : ''}Updated {relativeTime(ing.last_updated)}
-                        </span>
-                        {stale && (
-                          <span
-                            style={{
-                              fontSize: 9,
-                              color: '#FBB924',
-                              backgroundColor: 'rgba(251,185,36,0.12)',
-                              borderRadius: 9999,
-                              padding: '2px 6px',
-                              fontWeight: 600,
-                            }}
-                          >
-                            STALE
-                          </span>
-                        )}
-                      </div>
-                    </div>
+                <motion.div
+                  key={ing.id}
+                  whileTap={{ scale: 0.98, opacity: 0.85 }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                  onClick={() => navigate(`/ingredients/${ing.id}`)}
+                  style={{
+                    backgroundColor: stale ? 'rgba(240,169,63,0.06)' : '#161D2B',
+                    border: `1px solid ${stale ? 'rgba(240,169,63,0.2)' : 'rgba(255,255,255,0.08)'}`,
+                    borderRadius: 14, padding: '10px 12px',
+                    display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer',
+                  }}
+                >
+                  {/* Letter circle */}
+                  <div style={{
+                    width: 36, height: 36, borderRadius: '50%', flexShrink: 0,
+                    backgroundColor: `${color}22`, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}>
+                    <span style={{ fontSize: 14, fontWeight: 800, color }}>{firstLetter(ing.name)}</span>
                   </div>
-                </Card>
+
+                  {/* Name + unit */}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ fontSize: 13, fontWeight: 700, color: '#F4F6FA', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ing.name}</p>
+                    <p style={{ fontSize: 10, color: '#9AA4B8', margin: '1px 0 0' }}>{ing.unit}</p>
+                  </div>
+
+                  {/* Price + delta */}
+                  <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                    <p style={{ fontSize: 14, fontWeight: 700, color: '#F4F6FA', margin: 0 }}>₹{ing.price_per_kg}/kg</p>
+                    <p style={{ fontSize: 11, margin: '1px 0 0', color: '#6B7588' }}>
+                      {deltasLoading ? '—' : delta === null ? '—' : (
+                        <span style={{ color: delta > 0 ? '#F0A93F' : '#36D399', fontWeight: 700 }}>
+                          {delta > 0 ? '+' : ''}{delta.toFixed(1)}%
+                        </span>
+                      )}
+                      {' '}<span style={{ color: '#6B7588', fontSize: 10 }}>{relativeTime(ing.last_updated)}</span>
+                    </p>
+                  </div>
+                </motion.div>
               )
             })}
           </div>
         )}
-
-        {/* ── Update all prices FAB (placeholder) ── */}
-        {!isLoading && ingredients.length > 0 && (
-          <div style={{ marginTop: 20, textAlign: 'center' }}>
-            <button
-              disabled
-              style={{
-                backgroundColor: '#FFFFFF',
-                border: '0.5px solid #EDE8F5',
-                borderRadius: 9999,
-                padding: '10px 20px',
-                fontSize: 12,
-                color: '#888888',
-                fontFamily: 'inherit',
-                cursor: 'not-allowed',
-                opacity: 0.5,
-              }}
-            >
-              Update all prices — coming soon
-            </button>
-          </div>
-        )}
-
       </div>
 
       <BottomNav />
