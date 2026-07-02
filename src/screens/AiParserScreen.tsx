@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Check } from 'lucide-react'
+import { Check, Sparkles } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useRestaurantStore } from '../stores/restaurantStore'
 import { calculateMargin, formatCurrency, formatMargin, ingredientCost } from '../lib/costCalculator'
@@ -39,9 +39,7 @@ interface RawIngredient {
   estimated_price_per_kg?: number
 }
 
-function makeId() {
-  return Math.random().toString(36).slice(2, 9)
-}
+function makeId() { return Math.random().toString(36).slice(2, 9) }
 
 const CHIPS = [
   {
@@ -58,19 +56,6 @@ const CHIPS = [
   },
 ]
 
-const inlineInputStyle = {
-  border: 'none',
-  borderBottom: '0.5px solid #EDE8F5',
-  backgroundColor: 'transparent',
-  fontSize: 13,
-  color: '#1A1A1A',
-  outline: 'none',
-  fontFamily: 'inherit',
-  width: '100%',
-  boxSizing: 'border-box' as const,
-  paddingBottom: 4,
-}
-
 export default function AiParserScreen() {
   const navigate = useNavigate()
   const { restaurant } = useRestaurantStore()
@@ -83,10 +68,7 @@ export default function AiParserScreen() {
   const [isSaving, setIsSaving] = useState(false)
 
   async function handleParse() {
-    if (!text.trim()) {
-      setError('Please describe your dish')
-      return
-    }
+    if (!text.trim()) { setError('Please describe your dish'); return }
     setError('')
     setPhase('loading')
 
@@ -107,13 +89,9 @@ export default function AiParserScreen() {
       }
 
       const raw = data as {
-        name: string
-        category: string
-        estimated_selling_price: number
-        ingredients: RawIngredient[]
-        serves: number
-        wastage_percent: number
-        overhead_percent: number
+        name: string; category: string; estimated_selling_price: number
+        ingredients: RawIngredient[]; serves: number
+        wastage_percent: number; overhead_percent: number
       }
 
       setParsedRecipe({
@@ -190,29 +168,17 @@ export default function AiParserScreen() {
   function updateIngredient(id: string, field: keyof EditableIngredient, value: string | number | Unit) {
     setParsedRecipe((prev) => {
       if (!prev) return prev
-      return {
-        ...prev,
-        ingredients: prev.ingredients.map((i) =>
-          i._id === id ? { ...i, [field]: value } : i
-        ),
-      }
+      return { ...prev, ingredients: prev.ingredients.map((i) => i._id === id ? { ...i, [field]: value } : i) }
     })
   }
 
   function handleAddAnother() {
-    setText('')
-    setError('')
-    setParsedRecipe(null)
-    setPhase('idle')
+    setText(''); setError(''); setParsedRecipe(null); setPhase('idle')
   }
 
   const margin = parsedRecipe
     ? calculateMargin({
-        ingredients: parsedRecipe.ingredients.map((i) => ({
-          quantity: i.quantity,
-          unit: i.unit,
-          pricePerKg: i.estimated_price_per_kg,
-        })),
+        ingredients: parsedRecipe.ingredients.map((i) => ({ quantity: i.quantity, unit: i.unit, pricePerKg: i.estimated_price_per_kg })),
         sellingPrice: parsedRecipe.selling_price,
         serves: parsedRecipe.serves,
         wastagePercent: parsedRecipe.wastage_percent,
@@ -220,81 +186,107 @@ export default function AiParserScreen() {
       })
     : null
 
+  const inlineDark: React.CSSProperties = {
+    border: 'none',
+    borderBottom: '1px solid rgba(255,255,255,0.08)',
+    backgroundColor: 'transparent',
+    fontSize: 13,
+    color: '#F4F6FA',
+    outline: 'none',
+    fontFamily: 'inherit',
+    width: '100%',
+    boxSizing: 'border-box',
+    paddingBottom: 4,
+  }
+
   return (
-    <div style={{ backgroundColor: '#FFFAF5', minHeight: '100vh' }}>
-      <GlacierHeader
-        title="Add your first dish"
-        subtitle="Type it naturally — AI will understand"
-      />
+    <div style={{ backgroundColor: '#0C111B', minHeight: '100vh' }}>
+      <GlacierHeader title="Add your first dish" subtitle="Describe it naturally — AI will understand" />
 
-      <div style={{ padding: '24px 16px 80px' }}>
+      <div style={{ padding: '16px 16px 80px' }}>
 
-        {/* ── Idle: textarea + chips ── */}
+        {/* Idle */}
         {phase === 'idle' && (
           <>
-            <textarea
-              value={text}
-              onChange={(e) => { setText(e.target.value); if (error) setError('') }}
-              onFocus={() => setFocused(true)}
-              onBlur={() => setFocused(false)}
-              placeholder="e.g. Dal Makhani — urad dal, kidney beans, butter, cream, tomatoes, spices. Serves 1 portion."
+            {/* AI card */}
+            <div
               style={{
-                width: '100%',
-                boxSizing: 'border-box',
-                height: 120,
-                backgroundColor: '#FFFAF5',
-                border: `0.5px solid ${focused ? '#7C3AED' : '#EDE8F5'}`,
-                borderRadius: 14,
-                padding: 12,
-                fontSize: 13,
-                color: '#1A1A1A',
-                fontFamily: 'inherit',
-                resize: 'none',
-                outline: 'none',
-                lineHeight: 1.5,
+                backgroundColor: 'rgba(63,198,240,0.14)',
+                border: '1px solid rgba(63,198,240,0.25)',
+                borderRadius: 16,
+                padding: 16,
+                marginBottom: 20,
               }}
-            />
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                <Sparkles size={20} strokeWidth={1.5} color="#3FC6F0" />
+                <span style={{ fontSize: 14, fontWeight: 700, color: '#F4F6FA' }}>AI Recipe Parser</span>
+              </div>
+              <p style={{ fontSize: 11, color: '#9AA4B8', fontStyle: 'italic', margin: '0 0 12px', lineHeight: 1.5 }}>
+                e.g. "Dal Makhani — 200g urad dal, 60g cream..."
+              </p>
 
-            {error && (
-              <p style={{ color: '#FF505F', fontSize: 11, marginTop: 6, marginBottom: 0 }}>{error}</p>
-            )}
+              <textarea
+                value={text}
+                onChange={(e) => { setText(e.target.value); if (error) setError('') }}
+                onFocus={() => setFocused(true)}
+                onBlur={() => setFocused(false)}
+                placeholder="Describe your dish with ingredients and quantities..."
+                style={{
+                  width: '100%',
+                  boxSizing: 'border-box',
+                  minHeight: 100,
+                  backgroundColor: '#0C111B',
+                  border: `1px solid ${focused ? '#3FC6F0' : 'rgba(255,255,255,0.08)'}`,
+                  borderRadius: 10,
+                  padding: 12,
+                  fontSize: 13,
+                  color: '#F4F6FA',
+                  fontFamily: 'inherit',
+                  resize: 'none',
+                  outline: 'none',
+                  lineHeight: 1.5,
+                  transition: 'border-color 0.15s',
+                }}
+              />
 
-            <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
-              {CHIPS.map((chip) => (
-                <button
-                  key={chip.label}
-                  onClick={() => { setText(chip.text); setError('') }}
-                  style={{
-                    backgroundColor: '#F5F0FA',
-                    color: '#7C3AED',
-                    border: 'none',
-                    borderRadius: 9999,
-                    padding: '6px 14px',
-                    fontSize: 12,
-                    fontFamily: 'inherit',
-                    cursor: 'pointer',
-                  }}
-                >
-                  {chip.label}
-                </button>
-              ))}
+              {error && <p style={{ color: '#F0596B', fontSize: 11, margin: '6px 0 0' }}>{error}</p>}
+
+              <div style={{ display: 'flex', gap: 6, marginTop: 10, flexWrap: 'wrap' }}>
+                {CHIPS.map((chip) => (
+                  <button
+                    key={chip.label}
+                    onClick={() => { setText(chip.text); setError('') }}
+                    style={{
+                      backgroundColor: '#1B2436',
+                      color: '#9AA4B8',
+                      border: '1px solid rgba(255,255,255,0.1)',
+                      borderRadius: 9999,
+                      padding: '5px 12px',
+                      fontSize: 10,
+                      fontFamily: 'inherit',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {chip.label}
+                  </button>
+                ))}
+              </div>
+
+              <div style={{ marginTop: 12 }}>
+                <Button fullWidth onClick={handleParse}>
+                  Parse with AI →
+                </Button>
+              </div>
             </div>
 
-            <div style={{ marginTop: 20 }}>
-              <Button fullWidth onClick={handleParse}>
-                Parse with AI →
-              </Button>
-            </div>
-
-            <div style={{ marginTop: 12 }}>
-              <Button variant="ghost" fullWidth onClick={() => navigate('/dashboard')}>
-                Skip and go to dashboard →
-              </Button>
-            </div>
+            <Button variant="ghost" fullWidth onClick={() => navigate('/dashboard')}>
+              Skip and go to dashboard →
+            </Button>
           </>
         )}
 
-        {/* ── Loading: skeletons ── */}
+        {/* Loading */}
         {phase === 'loading' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <Skeleton height={52} radius={10} />
@@ -304,57 +296,45 @@ export default function AiParserScreen() {
           </div>
         )}
 
-        {/* ── Result: editable recipe card ── */}
+        {/* Result */}
         {phase === 'result' && parsedRecipe && (
           <>
             {/* Dish header card */}
             <div
               style={{
-                backgroundColor: '#FFFFFF',
-                border: '0.5px solid #EDE8F5',
+                backgroundColor: '#161D2B',
+                border: '1px solid rgba(255,255,255,0.08)',
                 borderRadius: 14,
                 padding: 16,
                 marginBottom: 12,
               }}
             >
-              <p style={{ fontSize: 10, color: '#888888', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              <p style={{ fontSize: 9, color: '#6B7588', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 800 }}>
                 Dish name
               </p>
               <input
                 value={parsedRecipe.name}
                 onChange={(e) => setParsedRecipe((p) => p ? { ...p, name: e.target.value } : p)}
-                style={{ ...inlineInputStyle, fontSize: 15, fontWeight: 600, marginBottom: 12 }}
+                style={{ ...inlineDark, fontSize: 15, fontWeight: 600, marginBottom: 12 }}
               />
-
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span
-                  style={{
-                    backgroundColor: '#F5F0FA',
-                    color: '#7C3AED',
-                    fontSize: 10,
-                    borderRadius: 9999,
-                    padding: '3px 10px',
-                  }}
-                >
+                <span style={{ backgroundColor: 'rgba(63,198,240,0.1)', color: '#3FC6F0', fontSize: 10, borderRadius: 9999, padding: '3px 10px' }}>
                   {parsedRecipe.category}
                 </span>
                 <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <span style={{ color: '#888888', fontSize: 12 }}>₹</span>
+                  <span style={{ color: '#9AA4B8', fontSize: 12 }}>₹</span>
                   <input
                     type="number"
                     value={parsedRecipe.selling_price || ''}
-                    onChange={(e) =>
-                      setParsedRecipe((p) => p ? { ...p, selling_price: Number(e.target.value) || 0 } : p)
-                    }
+                    onChange={(e) => setParsedRecipe((p) => p ? { ...p, selling_price: Number(e.target.value) || 0 } : p)}
                     placeholder="0"
-                    style={{ ...inlineInputStyle, width: 70, textAlign: 'right', fontWeight: 600 }}
+                    style={{ ...inlineDark, width: 70, textAlign: 'right', fontWeight: 600 }}
                   />
                 </div>
               </div>
             </div>
 
-            {/* Ingredients section */}
-            <p style={{ fontSize: 10, fontWeight: 600, color: '#888888', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            <p style={{ fontSize: 9, fontWeight: 800, color: '#6B7588', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
               Ingredients
             </p>
 
@@ -364,17 +344,12 @@ export default function AiParserScreen() {
                 return (
                   <div
                     key={ing._id}
-                    style={{
-                      backgroundColor: '#FFFFFF',
-                      border: '0.5px solid #EDE8F5',
-                      borderRadius: 10,
-                      padding: '10px 12px',
-                    }}
+                    style={{ backgroundColor: '#161D2B', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '10px 12px' }}
                   >
                     <input
                       value={ing.name}
                       onChange={(e) => updateIngredient(ing._id, 'name', e.target.value)}
-                      style={{ ...inlineInputStyle, fontWeight: 600, marginBottom: 8 }}
+                      style={{ ...inlineDark, fontWeight: 600, marginBottom: 8 }}
                     />
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                       <input
@@ -382,27 +357,28 @@ export default function AiParserScreen() {
                         value={ing.quantity || ''}
                         onChange={(e) => updateIngredient(ing._id, 'quantity', Number(e.target.value) || 0)}
                         placeholder="qty"
-                        style={{ ...inlineInputStyle, width: 48, fontWeight: 600 }}
+                        style={{ ...inlineDark, width: 48, fontWeight: 600 }}
                       />
                       {UNITS.map((u) => (
                         <button
                           key={u}
                           onClick={() => updateIngredient(ing._id, 'unit', u)}
                           style={{
-                            backgroundColor: ing.unit === u ? '#7C3AED' : '#F5F0FA',
-                            color: ing.unit === u ? '#FFFFFF' : '#7C3AED',
-                            border: 'none',
+                            backgroundColor: ing.unit === u ? '#3FC6F0' : '#0C111B',
+                            color: ing.unit === u ? '#04212E' : '#9AA4B8',
+                            border: ing.unit === u ? 'none' : '1px solid rgba(255,255,255,0.14)',
                             borderRadius: 9999,
                             padding: '2px 7px',
                             fontSize: 10,
                             fontFamily: 'inherit',
                             cursor: 'pointer',
+                            fontWeight: ing.unit === u ? 700 : 400,
                           }}
                         >
                           {u}
                         </button>
                       ))}
-                      <span style={{ marginLeft: 'auto', color: '#888888', fontSize: 11 }}>
+                      <span style={{ marginLeft: 'auto', color: '#9AA4B8', fontSize: 11 }}>
                         {formatCurrency(cost)}/portion
                       </span>
                     </div>
@@ -411,29 +387,28 @@ export default function AiParserScreen() {
               })}
             </div>
 
-            {/* Estimated margin */}
             {margin && (
               <div
                 style={{
-                  backgroundColor: '#FFFFFF',
-                  border: '0.5px solid #EDE8F5',
+                  backgroundColor: '#161D2B',
+                  border: '1px solid rgba(255,255,255,0.08)',
                   borderRadius: 14,
                   padding: 16,
                   marginBottom: 20,
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                  <span style={{ fontSize: 10, color: '#888888', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  <span style={{ fontSize: 9, color: '#6B7588', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 800 }}>
                     Est. margin
                   </span>
-                  <span style={{ fontSize: 15, fontWeight: 700, color: '#1A1A1A' }}>
+                  <span style={{ fontSize: 15, fontWeight: 700, color: '#F4F6FA' }}>
                     {formatMargin(margin.marginPercent)}
                   </span>
                 </div>
                 <MarginBar percent={margin.marginPercent} />
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8 }}>
-                  <span style={{ fontSize: 11, color: '#888888' }}>Cost: {formatCurrency(margin.totalCost)}</span>
-                  <span style={{ fontSize: 11, color: '#888888' }}>Profit: {formatCurrency(margin.profitPerDish)}</span>
+                  <span style={{ fontSize: 11, color: '#9AA4B8' }}>Cost: {formatCurrency(margin.totalCost)}</span>
+                  <span style={{ fontSize: 11, color: '#9AA4B8' }}>Profit: {formatCurrency(margin.profitPerDish)}</span>
                 </div>
               </div>
             )}
@@ -441,7 +416,6 @@ export default function AiParserScreen() {
             <Button fullWidth disabled={isSaving} onClick={handleSave}>
               {isSaving ? 'Saving...' : 'Save dish'}
             </Button>
-
             <div style={{ marginTop: 12 }}>
               <Button variant="ghost" fullWidth onClick={() => navigate('/dashboard')}>
                 Skip and go to dashboard →
@@ -450,35 +424,28 @@ export default function AiParserScreen() {
           </>
         )}
 
-        {/* ── Saved: confirmation ── */}
+        {/* Saved */}
         {phase === 'saved' && (
           <div style={{ textAlign: 'center', padding: '40px 0' }}>
             <div
               style={{
-                width: 52,
-                height: 52,
-                borderRadius: '50%',
-                backgroundColor: '#F0FBF5',
-                border: '0.5px solid rgba(0,220,130,0.4)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
+                width: 52, height: 52, borderRadius: '50%',
+                backgroundColor: 'rgba(54,211,153,0.14)',
+                border: '1px solid rgba(54,211,153,0.3)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
                 margin: '0 auto 16px',
               }}
             >
-              <Check size={22} strokeWidth={1.5} color="#00DC82" />
+              <Check size={22} strokeWidth={1.5} color="#36D399" />
             </div>
-            <p style={{ fontSize: 15, fontWeight: 600, color: '#1A1A1A', margin: '0 0 4px' }}>
+            <p style={{ fontSize: 15, fontWeight: 700, color: '#F4F6FA', margin: '0 0 4px' }}>
               Dish saved!
             </p>
-            <p style={{ fontSize: 12, color: '#888888', margin: '0 0 28px' }}>
+            <p style={{ fontSize: 12, color: '#9AA4B8', margin: '0 0 28px' }}>
               {parsedRecipe?.name} has been added to your menu.
             </p>
-
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <Button fullWidth onClick={handleAddAnother}>
-                Add another dish
-              </Button>
+              <Button fullWidth onClick={handleAddAnother}>Add another dish</Button>
               <Button variant="ghost" fullWidth onClick={() => navigate('/dashboard')}>
                 Go to dashboard →
               </Button>

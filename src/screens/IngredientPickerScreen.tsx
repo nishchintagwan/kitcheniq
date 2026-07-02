@@ -16,14 +16,8 @@ interface LibraryIngredient {
 }
 
 const CATEGORY_ORDER = [
-  'Vegetables',
-  'Dairy',
-  'Meat & Eggs',
-  'Oils',
-  'Grains & Pulses',
-  'Spices',
-  'Dry Fruits & Nuts',
-  'Pantry',
+  'Vegetables', 'Dairy', 'Meat & Eggs', 'Oils',
+  'Grains & Pulses', 'Spices', 'Dry Fruits & Nuts', 'Pantry',
 ]
 
 function unitLabel(unit: string): string {
@@ -80,10 +74,7 @@ export default function IngredientPickerScreen() {
 
   async function handleSave() {
     const restaurantId = restaurant?.id
-    if (!restaurantId) {
-      navigate('/dashboard')
-      return
-    }
+    if (!restaurantId) { navigate('/dashboard'); return }
     setIsSaving(true)
     try {
       const rows = library
@@ -95,16 +86,13 @@ export default function IngredientPickerScreen() {
           unit: ing.unit,
           last_updated: new Date().toISOString(),
         }))
-      if (rows.length > 0) {
-        await supabase.from('ingredients').insert(rows)
-      }
+      if (rows.length > 0) await supabase.from('ingredients').insert(rows)
       navigate('/dashboard')
     } finally {
       setIsSaving(false)
     }
   }
 
-  // Filter and group
   const query = search.toLowerCase().trim()
   const filtered = query
     ? library.filter(ing => ing.name.toLowerCase().includes(query))
@@ -114,7 +102,6 @@ export default function IngredientPickerScreen() {
     .map(cat => ({ category: cat, items: filtered.filter(ing => ing.category === cat) }))
     .filter(g => g.items.length > 0)
 
-  // Also include any categories not in CATEGORY_ORDER (future-proof)
   const knownCategories = new Set(CATEGORY_ORDER)
   const extraCategories = [...new Set(filtered.map(i => i.category))].filter(c => !knownCategories.has(c))
   for (const cat of extraCategories) {
@@ -122,26 +109,36 @@ export default function IngredientPickerScreen() {
   }
 
   return (
-    <div style={{ backgroundColor: '#FFFAF5', minHeight: '100vh' }}>
+    <div style={{ backgroundColor: '#0C111B', minHeight: '100vh' }}>
       <GlacierHeader
-        title="Set your ingredient prices"
+        title="Set ingredient prices"
         subtitle="Update from what you pay at the mandi"
+        rightElement={
+          selected.size > 0 ? (
+            <span
+              style={{
+                backgroundColor: '#3FC6F0',
+                color: '#04212E',
+                fontSize: 11,
+                fontWeight: 800,
+                borderRadius: 9999,
+                padding: '2px 10px',
+              }}
+            >
+              {selected.size} selected
+            </span>
+          ) : undefined
+        }
       />
 
-      <div style={{ padding: '16px 16px 100px' }}>
-        {/* Search bar */}
+      <div style={{ padding: '8px 16px 100px' }}>
+        {/* Search */}
         <div style={{ position: 'relative', marginBottom: 16 }}>
           <Search
             size={14}
             strokeWidth={1.5}
-            color="#888888"
-            style={{
-              position: 'absolute',
-              left: 12,
-              top: '50%',
-              transform: 'translateY(-50%)',
-              pointerEvents: 'none',
-            }}
+            color="#6B7588"
+            style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}
           />
           <input
             type="text"
@@ -151,12 +148,12 @@ export default function IngredientPickerScreen() {
             style={{
               width: '100%',
               boxSizing: 'border-box',
-              backgroundColor: '#FFFFFF',
-              border: '0.5px solid #EDE8F5',
+              backgroundColor: '#1B2436',
+              border: '1px solid rgba(255,255,255,0.14)',
               borderRadius: 10,
               padding: '10px 12px 10px 34px',
               fontSize: 13,
-              color: '#1A1A1A',
+              color: '#F4F6FA',
               fontFamily: 'inherit',
               outline: 'none',
             }}
@@ -165,20 +162,12 @@ export default function IngredientPickerScreen() {
 
         {isLoading ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {Array.from({ length: 8 }).map((_, i) => (
-              <Skeleton key={i} height={52} radius={10} />
-            ))}
+            {Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} height={52} radius={10} />)}
           </div>
         ) : (
           <>
-            {selected.size > 0 && (
-              <p style={{ fontSize: 11, color: '#7C3AED', marginBottom: 12, marginTop: 0 }}>
-                {selected.size} ingredient{selected.size !== 1 ? 's' : ''} selected
-              </p>
-            )}
-
             {grouped.length === 0 ? (
-              <p style={{ textAlign: 'center', color: '#888888', fontSize: 13, marginTop: 40 }}>
+              <p style={{ textAlign: 'center', color: '#6B7588', fontSize: 13, marginTop: 40 }}>
                 No ingredients found
               </p>
             ) : (
@@ -186,11 +175,8 @@ export default function IngredientPickerScreen() {
                 <div key={group.category} style={{ marginBottom: 20 }}>
                   <p
                     style={{
-                      fontSize: 10,
-                      fontWeight: 600,
-                      color: '#888888',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.05em',
+                      fontSize: 9, fontWeight: 800, color: '#6B7588',
+                      textTransform: 'uppercase', letterSpacing: '0.06em',
                       margin: '0 0 8px',
                     }}
                   >
@@ -199,8 +185,8 @@ export default function IngredientPickerScreen() {
 
                   <div
                     style={{
-                      backgroundColor: '#FFFFFF',
-                      border: '0.5px solid #EDE8F5',
+                      backgroundColor: '#161D2B',
+                      border: '1px solid rgba(255,255,255,0.08)',
                       borderRadius: 14,
                       overflow: 'hidden',
                     }}
@@ -216,8 +202,9 @@ export default function IngredientPickerScreen() {
                             alignItems: 'center',
                             gap: 10,
                             padding: '10px 12px',
-                            borderBottom: isLast ? 'none' : '0.5px solid #EDE8F5',
-                            backgroundColor: isSelected ? 'rgba(124,58,237,0.03)' : 'transparent',
+                            borderBottom: isLast ? 'none' : '1px solid rgba(255,255,255,0.06)',
+                            backgroundColor: isSelected ? 'rgba(63,198,240,0.08)' : 'transparent',
+                            transition: 'background-color 0.15s',
                           }}
                         >
                           {/* Checkbox */}
@@ -225,31 +212,21 @@ export default function IngredientPickerScreen() {
                             onClick={() => toggleSelect(ing.id)}
                             aria-label={isSelected ? `Deselect ${ing.name}` : `Select ${ing.name}`}
                             style={{
-                              width: 20,
-                              height: 20,
-                              borderRadius: 6,
-                              border: isSelected ? 'none' : '1.5px solid #EDE8F5',
-                              backgroundColor: isSelected ? '#7C3AED' : 'transparent',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              cursor: 'pointer',
-                              flexShrink: 0,
-                              padding: 0,
+                              width: 20, height: 20, borderRadius: 6,
+                              border: isSelected ? 'none' : '1.5px solid rgba(255,255,255,0.14)',
+                              backgroundColor: isSelected ? '#3FC6F0' : '#1B2436',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              cursor: 'pointer', flexShrink: 0, padding: 0,
                             }}
                           >
-                            {isSelected && <Check size={11} strokeWidth={1.5} color="#FFFFFF" />}
+                            {isSelected && <Check size={11} strokeWidth={1.5} color="#04212E" />}
                           </button>
 
-                          {/* Name — tapping the name also toggles */}
                           <span
                             onClick={() => toggleSelect(ing.id)}
                             style={{
-                              flex: 1,
-                              fontSize: 13,
-                              color: '#1A1A1A',
-                              cursor: 'pointer',
-                              fontWeight: isSelected ? 600 : 400,
+                              flex: 1, fontSize: 13, color: '#F4F6FA',
+                              cursor: 'pointer', fontWeight: isSelected ? 600 : 400,
                             }}
                           >
                             {ing.name}
@@ -257,33 +234,21 @@ export default function IngredientPickerScreen() {
 
                           {/* Price input */}
                           <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-                            <span style={{ color: '#888888', fontSize: 12 }}>₹</span>
+                            <span style={{ color: '#9AA4B8', fontSize: 12 }}>₹</span>
                             <input
                               type="number"
                               inputMode="numeric"
                               value={prices[ing.id] ?? ing.price_per_kg}
                               onChange={e => updatePrice(ing.id, e.target.value)}
                               style={{
-                                width: 56,
-                                border: 'none',
-                                borderBottom: '0.5px solid #EDE8F5',
+                                width: 56, border: 'none',
+                                borderBottom: '1px solid rgba(255,255,255,0.08)',
                                 backgroundColor: 'transparent',
-                                fontSize: 13,
-                                fontWeight: 600,
-                                color: '#1A1A1A',
-                                outline: 'none',
-                                fontFamily: 'inherit',
-                                textAlign: 'right',
+                                fontSize: 13, fontWeight: 600, color: '#F4F6FA',
+                                outline: 'none', fontFamily: 'inherit', textAlign: 'right',
                               }}
                             />
-                            <span
-                              style={{
-                                color: '#888888',
-                                fontSize: 10,
-                                whiteSpace: 'nowrap',
-                                marginLeft: 2,
-                              }}
-                            >
+                            <span style={{ color: '#6B7588', fontSize: 10, whiteSpace: 'nowrap', marginLeft: 2 }}>
                               {unitLabel(ing.unit)}
                             </span>
                           </div>
