@@ -61,11 +61,10 @@ const errorStyle: React.CSSProperties = {
   marginTop: 4,
 }
 
-const IS_DEV = localStorage.getItem('kitcheniq_dev') === '1'
-
 export default function RestaurantSetupScreen() {
   const navigate = useNavigate()
   const { setRestaurant } = useRestaurantStore()
+  const IS_DEV = localStorage.getItem('kitcheniq_dev') === '1'
 
   const [isSaving, setIsSaving] = useState(false)
   const [showFssai, setShowFssai] = useState(false)
