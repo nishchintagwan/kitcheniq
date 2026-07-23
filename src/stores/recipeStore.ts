@@ -84,6 +84,11 @@ export const useRecipeStore = create<RecipeStore>()(
       // Single source of truth for all margin calculations in the app.
       // Reads current ingredient prices live from ingredientStore so that
       // a price update immediately reflects here without any manual invalidation.
+      //
+      // Price resolution order (matches the KB price resolution rule):
+      //   1. Owner price if last_updated within 7 days → use ingredients.price_per_kg
+      //   2. KB price if kb_ingredient_id is set → use kbPrices[kb_ingredient_id]
+      //   3. Fallback to owner price regardless (possibly stale, no KB match)
       getMarginForRecipe: (recipeId) => {
         const { recipes, recipeIngredients } = get()
         const recipe = recipes.find((r) => r.id === recipeId)
@@ -101,15 +106,20 @@ export const useRecipeStore = create<RecipeStore>()(
         }
 
         // Always read from ingredientStore.getState() — never cache here
-        const { ingredients } = useIngredientStore.getState()
+        const { ingredients, kbPrices } = useIngredientStore.getState()
+        const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000
 
         const ingredientInputs = items.map((ri) => {
           const ing = ingredients.find((i) => i.id === ri.ingredient_id)
-          return {
-            quantity: ri.quantity,
-            unit: ri.unit,
-            pricePerKg: ing?.price_per_kg ?? 0,
-          }
+          if (!ing) return { quantity: ri.quantity, unit: ri.unit, pricePerKg: 0 }
+
+          const ownerPriceFresh = new Date(ing.last_updated).getTime() >= sevenDaysAgo
+          const kbPrice = ing.kb_ingredient_id ? kbPrices[ing.kb_ingredient_id] : undefined
+          const pricePerKg = ownerPriceFresh || kbPrice == null
+            ? ing.price_per_kg
+            : kbPrice
+
+          return { quantity: ri.quantity, unit: ri.unit, pricePerKg }
         })
 
         return calculateMargin({

@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { Ingredient, PriceSpike, Recipe, Unit } from '../types'
-import { getIngredients, upsertIngredientPrice } from '../lib/queries'
+import { getIngredients, upsertIngredientPrice, getKbPricesForCity } from '../lib/queries'
 import { getSpikePercent, isSpikeAlert, calculateMargin } from '../lib/costCalculator'
 import { supabase } from '../lib/supabase'
 
@@ -11,8 +11,12 @@ interface IngredientStore {
   lastUpdated: string | null
   spikes: PriceSpike[]
   dismissedSpikeIds: string[]
+  // KB price fallback: kb_ingredient_id → price_per_kg for the restaurant's city.
+  // Populated once per session. Used when ingredient.last_updated is >7 days old.
+  kbPrices: Record<string, number>
   setIngredients: (ingredients: Ingredient[]) => void
   fetchIngredients: (restaurantId: string) => Promise<void>
+  fetchKbPrices: (city: string) => Promise<void>
   updateIngredientPrice: (id: string, newPrice: number) => Promise<void>
   dismissSpike: (ingredientId: string) => void
   clearIngredients: () => void
@@ -40,11 +44,17 @@ export const useIngredientStore = create<IngredientStore>()(
       lastUpdated: null,
       spikes: [],
       dismissedSpikeIds: [],
+      kbPrices: {},
 
       setIngredients: (ingredients) => set({ ingredients }),
 
       clearIngredients: () =>
-        set({ ingredients: [], isLoading: false, lastUpdated: null, spikes: [], dismissedSpikeIds: [] }),
+        set({ ingredients: [], isLoading: false, lastUpdated: null, spikes: [], dismissedSpikeIds: [], kbPrices: {} }),
+
+      fetchKbPrices: async (city) => {
+        const prices = await getKbPricesForCity(city)
+        set({ kbPrices: prices })
+      },
 
       dismissSpike: (ingredientId) =>
         set((state) => ({

@@ -23,6 +23,15 @@ export interface Ingredient {
   unit: Unit             // the unit the owner thinks in
   last_updated: string
   created_at: string
+  kb_ingredient_id?: string  // set by kb-matcher webhook on insert; null = no KB match
+}
+
+export interface KbIngredientPrice {
+  kb_ingredient_id: string
+  city: string
+  price_per_kg: number
+  source: 'agmarknet' | 'manual_seed' | 'owner'
+  recorded_at: string
 }
 
 export interface Recipe {

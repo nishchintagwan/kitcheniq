@@ -7,6 +7,7 @@ import type {
   IngredientPriceHistory,
   AiInsight,
   NutritionData,
+  KbIngredientPrice,
 } from '../types'
 
 export async function saveRestaurant(
@@ -236,6 +237,27 @@ export async function upsertIngredientPrice(
   } catch (error) {
     console.error('[upsertIngredientPrice]', error)
     return false
+  }
+}
+
+// Returns a map of kb_ingredient_id → price_per_kg for the given city.
+// Used by recipeStore.getMarginForRecipe to fall back to KB prices when
+// an owner's ingredient price has not been updated within 7 days.
+export async function getKbPricesForCity(city: string): Promise<Record<string, number>> {
+  try {
+    const { data, error } = await supabase
+      .from('kb_ingredient_prices')
+      .select('kb_ingredient_id, price_per_kg')
+      .eq('city', city)
+    if (error) throw error
+    const map: Record<string, number> = {}
+    for (const row of (data ?? []) as Pick<KbIngredientPrice, 'kb_ingredient_id' | 'price_per_kg'>[]) {
+      map[row.kb_ingredient_id] = row.price_per_kg
+    }
+    return map
+  } catch (error) {
+    console.error('[getKbPricesForCity]', error)
+    return {}
   }
 }
 

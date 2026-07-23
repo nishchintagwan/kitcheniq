@@ -77,7 +77,7 @@ export default function DashboardScreen() {
   const navigate = useNavigate()
   const { restaurant } = useRestaurantStore()
   const { recipes, recipeIngredients, fetchRecipes, fetchRecipeIngredients, getAggregateMargin, getEstimatedMonthlySales } = useRecipeStore()
-  const { ingredients, fetchIngredients, spikes, dismissedSpikeIds } = useIngredientStore()
+  const { ingredients, fetchIngredients, fetchKbPrices, spikes, dismissedSpikeIds } = useIngredientStore()
 
   const [isLoading, setIsLoading] = useState(true)
   const [aiSummary, setAiSummary] = useState<string | null>(null)
@@ -112,7 +112,13 @@ export default function DashboardScreen() {
     let cancelled = false
     setIsLoading(true)
     async function load() {
-      await Promise.all([fetchRecipes(restaurantId!), fetchIngredients(restaurantId!)])
+      // Fetch KB prices in parallel with restaurant data (city used for KB lookup)
+      const city = restaurant?.city ?? 'pune'
+      await Promise.all([
+        fetchRecipes(restaurantId!),
+        fetchIngredients(restaurantId!),
+        fetchKbPrices(city),
+      ])
       if (cancelled) return
       const { recipes: latest } = useRecipeStore.getState()
       await Promise.all(latest.map((r) => fetchRecipeIngredients(r.id)))
