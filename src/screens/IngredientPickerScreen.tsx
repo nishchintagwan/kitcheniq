@@ -86,7 +86,9 @@ export default function IngredientPickerScreen() {
           unit: ing.unit,
           last_updated: new Date().toISOString(),
         }))
-      if (rows.length > 0) await supabase.from('ingredients').insert(rows)
+      if (rows.length > 0) {
+        await supabase.from('ingredients').upsert(rows, { onConflict: 'restaurant_id,name' })
+      }
       navigate('/dashboard')
     } finally {
       setIsSaving(false)
